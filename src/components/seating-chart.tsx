@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Users, X } from "lucide-react";
+import { X } from "lucide-react";
 
 type Hall = "men" | "women";
 type Seats = (string | null)[];
@@ -16,45 +16,187 @@ type RsvpRow = {
 
 const SEATS_PER_TABLE = 8;
 const HALL = {
-  men: { label: "Men's Hall", tables: 19 },
+  men:   { label: "Men's Hall",   tables: 19 },
   women: { label: "Women's Hall", tables: 13 },
 };
-const RADIUS = 54;
-const SEAT = 34;
-const BOX = (RADIUS + SEAT / 2 + 6) * 2;
 
-function emptySeats(): Seats {
-  return Array(SEATS_PER_TABLE).fill(null);
-}
+// Table circle dimensions
+const R  = 38;   // radius from center to seat center
+const S  = 24;   // seat diameter
+const BOX = (R + S / 2 + 6) * 2; // full container size per table
 
-function getSeats(map: HallMap, t: number): Seats {
-  return map[t] ?? emptySeats();
-}
+function emptySeats(): Seats       { return Array(SEATS_PER_TABLE).fill(null); }
+function getSeats(m: HallMap, t: number): Seats { return m[t] ?? emptySeats(); }
 
 function initials(name: string) {
-  return name
-    .split(" ")
-    .slice(0, 2)
-    .map((w) => w[0]?.toUpperCase() ?? "")
-    .join("");
+  return name.split(" ").slice(0, 2).map((w) => w[0]?.toUpperCase() ?? "").join("");
 }
 
 function seatPos(i: number) {
-  const angle = (i * 360) / SEATS_PER_TABLE;
-  const rad = (angle * Math.PI) / 180;
-  return { x: Math.sin(rad) * RADIUS, y: -Math.cos(rad) * RADIUS };
+  const rad = ((i * 360) / SEATS_PER_TABLE) * (Math.PI / 180);
+  return { x: Math.sin(rad) * R, y: -Math.cos(rad) * R };
 }
 
+// ─── Table unit ───────────────────────────────────────────────────────────────
+
+function TableUnit({
+  index, seats, selected, onSeatClick,
+}: {
+  index: number;
+  seats: Seats;
+  selected: string | null;
+  onSeatClick: (t: number, s: number, current: string | null) => void;
+}) {
+  const filled = seats.filter(Boolean).length;
+  return (
+    <div className="flex flex-col items-center gap-1">
+      <div style={{ width: BOX, height: BOX, position: "relative" }}>
+        {/* Table */}
+        <div
+          style={{
+            position: "absolute", left: "50%", top: "50%",
+            width: 44, height: 44, transform: "translate(-50%,-50%)",
+          }}
+          className="flex items-center justify-center rounded-full border-2 border-wine/35 bg-wine/15"
+        >
+          <span className="text-[11px] font-bold text-wine/70">{index + 1}</span>
+        </div>
+
+        {/* Seats */}
+        {seats.map((guest, s) => {
+          const { x, y } = seatPos(s);
+          const clickable = guest ? true : !!selected;
+          return (
+            <div
+              key={s}
+              style={{
+                position: "absolute", left: "50%", top: "50%",
+                width: S, height: S,
+                transform: `translate(calc(-50% + ${x}px), calc(-50% + ${y}px))`,
+              }}
+            >
+              <motion.button
+                whileHover={clickable ? { scale: 1.15 } : {}}
+                whileTap={clickable  ? { scale: 0.90 } : {}}
+                onClick={() => onSeatClick(index, s, guest)}
+                title={guest ?? (selected ? `Place ${selected} here` : "")}
+                style={{ width: "100%", height: "100%" }}
+                className={`flex items-center justify-center rounded-full border text-[9px] font-bold transition-colors ${
+                  guest
+                    ? "border-wine bg-wine text-white shadow-[0_3px_10px_rgba(111,48,50,0.35)]"
+                    : selected
+                    ? "border-wine/50 bg-white/85 text-wine/40 hover:border-wine hover:bg-wine/10 cursor-pointer"
+                    : "border-white/55 bg-white/35 text-ink/20 cursor-default"
+                }`}
+              >
+                {guest ? initials(guest) : ""}
+              </motion.button>
+            </div>
+          );
+        })}
+      </div>
+      <p className="text-[10px] text-ink/35">{filled}/{SEATS_PER_TABLE}</p>
+    </div>
+  );
+}
+
+// ─── Hall view ────────────────────────────────────────────────────────────────
+
+function HallView({
+  tableCount, hallMap, selected, onSeatClick,
+}: {
+  tableCount: number;
+  hallMap: HallMap;
+  selected: string | null;
+  onSeatClick: (t: number, s: number, current: string | null) => void;
+}) {
+  const leftCount  = Math.ceil(tableCount / 2);
+  const rightCount = tableCount - leftCount;
+
+  return (
+    <div className="overflow-x-auto pb-4">
+      <div className="mx-auto w-fit min-w-full px-2">
+
+        {/* Stage */}
+        <div className="relative mb-2 flex h-12 items-center justify-center rounded-2xl border border-wine/30 bg-gradient-to-b from-wine/18 to-wine/6 shadow-inner">
+          <span className="text-[11px] font-bold uppercase tracking-[0.3em] text-wine/55">
+            ✦ Stage ✦
+          </span>
+          <div className="absolute bottom-0 inset-x-8 h-px bg-gradient-to-r from-transparent via-wine/25 to-transparent" />
+        </div>
+
+        {/* Arrow down from stage */}
+        <div className="mb-6 flex justify-center">
+          <div className="h-6 w-px bg-gradient-to-b from-wine/30 to-transparent" />
+        </div>
+
+        {/* Two halves + aisle */}
+        <div className="flex items-start justify-center gap-6">
+
+          {/* Left half — 2 columns */}
+          <div>
+            <p className="mb-3 text-center text-[10px] font-semibold uppercase tracking-[0.2em] text-ink/30">
+              Left
+            </p>
+            <div className="grid grid-cols-2 gap-3">
+              {Array.from({ length: leftCount }, (_, i) => (
+                <TableUnit
+                  key={i}
+                  index={i}
+                  seats={getSeats(hallMap, i)}
+                  selected={selected}
+                  onSeatClick={onSeatClick}
+                />
+              ))}
+            </div>
+          </div>
+
+          {/* Aisle */}
+          <div className="flex flex-col items-center pt-8">
+            <div className="h-full w-px flex-1 bg-gradient-to-b from-ink/12 via-ink/8 to-transparent" style={{ minHeight: Math.ceil(leftCount / 2) * (BOX + 28) }} />
+            <span
+              className="my-3 text-[9px] font-semibold uppercase tracking-[0.3em] text-ink/22"
+              style={{ writingMode: "vertical-rl" }}
+            >
+              Aisle
+            </span>
+          </div>
+
+          {/* Right half — 2 columns */}
+          <div>
+            <p className="mb-3 text-center text-[10px] font-semibold uppercase tracking-[0.2em] text-ink/30">
+              Right
+            </p>
+            <div className="grid grid-cols-2 gap-3">
+              {Array.from({ length: rightCount }, (_, i) => (
+                <TableUnit
+                  key={leftCount + i}
+                  index={leftCount + i}
+                  seats={getSeats(hallMap, leftCount + i)}
+                  selected={selected}
+                  onSeatClick={onSeatClick}
+                />
+              ))}
+              {/* Keep grid even if right side has an odd count */}
+              {rightCount % 2 !== 0 && <div style={{ width: BOX }} />}
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── Main component ───────────────────────────────────────────────────────────
+
 export function SeatingChart({ rsvps }: { rsvps: RsvpRow[] }) {
-  const [hall, setHall] = useState<Hall>("men");
-  const [assignments, setAssignments] = useState<Assignments>({ men: {}, women: {} });
-  const [selected, setSelected] = useState<string | null>(null);
+  const [hall, setHall]           = useState<Hall>("men");
+  const [assignments, setAssign]  = useState<Assignments>({ men: {}, women: {} });
+  const [selected, setSelected]   = useState<string | null>(null);
 
   useEffect(() => {
-    try {
-      const raw = localStorage.getItem("seating-v1");
-      if (raw) setAssignments(JSON.parse(raw));
-    } catch {}
+    try { const r = localStorage.getItem("seating-v1"); if (r) setAssign(JSON.parse(r)); } catch {}
   }, []);
 
   useEffect(() => {
@@ -63,20 +205,19 @@ export function SeatingChart({ rsvps }: { rsvps: RsvpRow[] }) {
 
   const allNames = rsvps.filter((r) => r.is_attending).flatMap((r) => r.guest_names);
   const pool = {
-    men: allNames.filter((n) => n.endsWith("(Male)")).map((n) => n.replace(" (Male)", "")),
+    men:   allNames.filter((n) => n.endsWith("(Male)")).map((n)   => n.replace(" (Male)", "")),
     women: allNames.filter((n) => n.endsWith("(Female)")).map((n) => n.replace(" (Female)", "")),
   };
 
-  const hallMap = assignments[hall];
-  const assigned = new Set(Object.values(hallMap).flat().filter(Boolean) as string[]);
+  const hallMap   = assignments[hall];
+  const assigned  = new Set(Object.values(hallMap).flat().filter(Boolean) as string[]);
   const unassigned = pool[hall].filter((g) => !assigned.has(g));
-  const tableCount = HALL[hall].tables;
-  const seated = assigned.size;
-  const total = pool[hall].length;
+  const seated    = assigned.size;
+  const total     = pool[hall].length;
 
   function handleSeatClick(t: number, s: number, current: string | null) {
     if (current) {
-      setAssignments((prev) => {
+      setAssign((prev) => {
         const map = { ...prev[hall] };
         const seats = [...getSeats(map, t)];
         seats[s] = null;
@@ -84,7 +225,7 @@ export function SeatingChart({ rsvps }: { rsvps: RsvpRow[] }) {
         return { ...prev, [hall]: map };
       });
     } else if (selected) {
-      setAssignments((prev) => {
+      setAssign((prev) => {
         const map = { ...prev[hall] };
         const seats = [...getSeats(map, t)];
         if (seats[s] !== null) return prev;
@@ -97,12 +238,13 @@ export function SeatingChart({ rsvps }: { rsvps: RsvpRow[] }) {
   }
 
   function clearHall() {
-    setAssignments((prev) => ({ ...prev, [hall]: {} }));
+    setAssign((prev) => ({ ...prev, [hall]: {} }));
     setSelected(null);
   }
 
   return (
     <div className="mt-6 overflow-hidden rounded-[2rem] border border-white/65 bg-white/38 shadow-glass backdrop-blur-2xl">
+
       {/* Header */}
       <div className="flex flex-wrap items-center justify-between gap-3 border-b border-white/60 px-5 py-4 sm:px-6">
         <div className="flex gap-2">
@@ -135,9 +277,10 @@ export function SeatingChart({ rsvps }: { rsvps: RsvpRow[] }) {
         </div>
       </div>
 
-      <div className="flex flex-col gap-0 lg:flex-row">
+      <div className="flex flex-col lg:flex-row">
+
         {/* Guest list */}
-        <div className="w-full shrink-0 border-b border-white/60 p-4 lg:w-56 lg:border-b-0 lg:border-r lg:p-5">
+        <div className="w-full shrink-0 border-b border-white/60 p-4 lg:w-52 lg:border-b-0 lg:border-r lg:p-5">
           <p className="mb-3 text-xs font-semibold uppercase tracking-[0.18em] text-ink/45">
             Unassigned ({unassigned.length})
           </p>
@@ -169,10 +312,7 @@ export function SeatingChart({ rsvps }: { rsvps: RsvpRow[] }) {
               </p>
               <div className="flex flex-wrap gap-2 lg:flex-col lg:gap-1.5">
                 {Array.from(assigned).map((guest) => (
-                  <div
-                    key={guest}
-                    className="rounded-xl border border-white/60 bg-white/30 px-3 py-2 text-sm text-ink/45 line-through"
-                  >
+                  <div key={guest} className="rounded-xl border border-white/60 bg-white/30 px-3 py-2 text-sm text-ink/40 line-through">
                     {guest}
                   </div>
                 ))}
@@ -181,15 +321,15 @@ export function SeatingChart({ rsvps }: { rsvps: RsvpRow[] }) {
           )}
         </div>
 
-        {/* Tables */}
-        <div className="flex-1 overflow-x-auto p-4 sm:p-6">
-          {selected && (
-            <AnimatePresence>
+        {/* Hall */}
+        <div className="flex-1 p-4 sm:p-6">
+          <AnimatePresence>
+            {selected && (
               <motion.div
                 initial={{ opacity: 0, y: -6 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -6 }}
-                className="mb-4 flex items-center justify-between rounded-2xl border border-wine/20 bg-wine/8 px-4 py-2.5"
+                className="mb-5 flex items-center justify-between rounded-2xl border border-wine/20 bg-wine/8 px-4 py-2.5"
               >
                 <p className="text-sm font-medium text-wine">
                   Placing <span className="font-bold">{selected}</span> — click an empty seat
@@ -198,76 +338,17 @@ export function SeatingChart({ rsvps }: { rsvps: RsvpRow[] }) {
                   <X className="h-4 w-4" />
                 </button>
               </motion.div>
-            </AnimatePresence>
-          )}
+            )}
+          </AnimatePresence>
 
-          <div className="grid grid-cols-2 gap-6 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5">
-            {Array.from({ length: tableCount }, (_, t) => {
-              const seats = getSeats(hallMap, t);
-              const filledCount = seats.filter(Boolean).length;
-              return (
-                <div key={t} className="flex flex-col items-center gap-1.5">
-                  <div style={{ width: BOX, height: BOX, position: "relative" }}>
-                    {/* Table circle */}
-                    <div
-                      style={{
-                        position: "absolute",
-                        left: "50%",
-                        top: "50%",
-                        width: 52,
-                        height: 52,
-                        transform: "translate(-50%,-50%)",
-                      }}
-                      className="flex items-center justify-center rounded-full border-2 border-wine/30 bg-wine/12"
-                    >
-                      <span className="text-xs font-bold text-wine/70">{t + 1}</span>
-                    </div>
-
-                    {/* Seats */}
-                    {seats.map((guest, s) => {
-                      const { x, y } = seatPos(s);
-                      const isEmpty = !guest;
-                      const isClickable = isEmpty ? !!selected : true;
-                      return (
-                        <div
-                          key={s}
-                          style={{
-                            position: "absolute",
-                            left: "50%",
-                            top: "50%",
-                            width: SEAT,
-                            height: SEAT,
-                            transform: `translate(calc(-50% + ${x}px), calc(-50% + ${y}px))`,
-                          }}
-                        >
-                          <motion.button
-                            whileHover={isClickable ? { scale: 1.12 } : {}}
-                            whileTap={isClickable ? { scale: 0.94 } : {}}
-                            onClick={() => handleSeatClick(t, s, guest)}
-                            title={guest ?? (selected ? `Seat ${selected} here` : "")}
-                            style={{ width: "100%", height: "100%" }}
-                            className={`flex items-center justify-center rounded-full border text-[10px] font-bold transition ${
-                              guest
-                                ? "border-wine bg-wine text-white shadow-[0_4px_12px_rgba(111,48,50,0.3)]"
-                                : selected
-                                ? "border-wine/40 bg-white/80 text-wine/50 hover:border-wine hover:bg-wine/10"
-                                : "border-white/55 bg-white/40 text-ink/25"
-                            }`}
-                          >
-                            {guest ? initials(guest) : ""}
-                          </motion.button>
-                        </div>
-                      );
-                    })}
-                  </div>
-                  <p className="text-[11px] text-ink/40">
-                    {filledCount}/{SEATS_PER_TABLE}
-                  </p>
-                </div>
-              );
-            })}
-          </div>
+          <HallView
+            tableCount={HALL[hall].tables}
+            hallMap={hallMap}
+            selected={selected}
+            onSeatClick={handleSeatClick}
+          />
         </div>
+
       </div>
     </div>
   );
