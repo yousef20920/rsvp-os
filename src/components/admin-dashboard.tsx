@@ -28,7 +28,7 @@ type RsvpRow = {
 };
 
 type SessionState = "loading" | "signed-out" | "signed-in";
-const ADMIN_EMAILS = ["yousef.hadi.cs@gmail.com", "dr.osama.abdelhadi@gmail.com"];
+const ADMIN_EMAILS = ["yousef.hadi.cs@gmail.com", "dr.osama.abdelhadi@gmail.com", "alhayeknour@gmail.com"];
 
 export function AdminDashboard() {
   const [sessionState, setSessionState] = useState<SessionState>(
