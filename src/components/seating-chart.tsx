@@ -229,12 +229,8 @@ export function SeatingChart({ rsvps }: { rsvps: RsvpRow[] }) {
                       const isEmpty = !guest;
                       const isClickable = isEmpty ? !!selected : true;
                       return (
-                        <motion.button
+                        <div
                           key={s}
-                          whileHover={isClickable ? { scale: 1.12 } : {}}
-                          whileTap={isClickable ? { scale: 0.94 } : {}}
-                          onClick={() => handleSeatClick(t, s, guest)}
-                          title={guest ?? (selected ? `Seat ${selected} here` : "")}
                           style={{
                             position: "absolute",
                             left: "50%",
@@ -243,16 +239,24 @@ export function SeatingChart({ rsvps }: { rsvps: RsvpRow[] }) {
                             height: SEAT,
                             transform: `translate(calc(-50% + ${x}px), calc(-50% + ${y}px))`,
                           }}
-                          className={`flex items-center justify-center rounded-full border text-[10px] font-bold transition ${
-                            guest
-                              ? "border-wine bg-wine text-white shadow-[0_4px_12px_rgba(111,48,50,0.3)]"
-                              : selected
-                              ? "border-wine/40 bg-white/80 text-wine/50 hover:border-wine hover:bg-wine/10"
-                              : "border-white/55 bg-white/40 text-ink/25"
-                          }`}
                         >
-                          {guest ? initials(guest) : ""}
-                        </motion.button>
+                          <motion.button
+                            whileHover={isClickable ? { scale: 1.12 } : {}}
+                            whileTap={isClickable ? { scale: 0.94 } : {}}
+                            onClick={() => handleSeatClick(t, s, guest)}
+                            title={guest ?? (selected ? `Seat ${selected} here` : "")}
+                            style={{ width: "100%", height: "100%" }}
+                            className={`flex items-center justify-center rounded-full border text-[10px] font-bold transition ${
+                              guest
+                                ? "border-wine bg-wine text-white shadow-[0_4px_12px_rgba(111,48,50,0.3)]"
+                                : selected
+                                ? "border-wine/40 bg-white/80 text-wine/50 hover:border-wine hover:bg-wine/10"
+                                : "border-white/55 bg-white/40 text-ink/25"
+                            }`}
+                          >
+                            {guest ? initials(guest) : ""}
+                          </motion.button>
+                        </div>
                       );
                     })}
                   </div>
