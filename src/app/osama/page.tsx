@@ -5,7 +5,7 @@ export const metadata: Metadata = {
   title: "You're Invited",
   openGraph: {
     title: "You're Invited",
-    description: "The wedding of Osama & Nour — You're invited.",
+    description: "The wedding of Osama & Nour — You're invited. Please RSVP by June 20.",
     images: [{ url: "/osama.jpeg", width: 1200, height: 630 }],
   },
 };
