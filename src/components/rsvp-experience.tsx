@@ -8,7 +8,6 @@ import {
   Loader2,
   MapPin,
   Plus,
-  Sparkles,
   Trash2
 } from "lucide-react";
 import { FormEvent, useMemo, useRef, useState } from "react";
@@ -97,11 +96,6 @@ function HeroSection() {
         variants={fadeUp}
         transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
       >
-        <div className="flex items-center gap-3 rounded-full border border-white/60 bg-white/45 px-4 py-2 text-xs uppercase tracking-[0.24em] text-wine shadow-sm backdrop-blur-xl">
-          <Sparkles className="h-4 w-4" />
-          The Invitation
-        </div>
-
         <div className="relative w-full max-w-[760px]">
           <div className="absolute -inset-5 rounded-[2.2rem] bg-white/40 blur-2xl" />
           <div className="relative overflow-hidden rounded-[2rem] border border-white/70 bg-white/50 p-3 shadow-glass backdrop-blur-xl sm:p-4">
