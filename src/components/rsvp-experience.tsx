@@ -202,7 +202,8 @@ function LocationSection() {
         <ScrollReveal className="text-center">
           <p className="mb-3 text-xs uppercase tracking-[0.28em] text-olive">Venue</p>
           <h2 className="font-display text-4xl text-ink sm:text-5xl">Getting There</h2>
-          <p className="mx-auto mt-5 max-w-sm text-sm leading-7 text-ink/58">
+          <p className="mt-5 font-display text-2xl text-ink">Mississauga Convention Centre</p>
+          <p className="mx-auto mt-2 max-w-sm text-sm leading-7 text-ink/58">
             Men's Hall: A &nbsp;·&nbsp; Women's Hall: F
           </p>
           <a
