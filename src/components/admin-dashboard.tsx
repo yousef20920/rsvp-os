@@ -3,6 +3,7 @@
 import { AnimatePresence, motion } from "framer-motion";
 import {
   ChevronDown,
+  ExternalLink,
   LogOut,
   Mail,
   RefreshCw,
@@ -198,6 +199,26 @@ export function AdminDashboard() {
               </button>
             </div>
           ) : null}
+        </div>
+
+        {/* Instance links */}
+        <div className="mb-6 flex flex-wrap gap-2">
+          {[
+            { label: "Men", href: "/men" },
+            { label: "Women", href: "/women" },
+            { label: "Osama", href: "/osama" },
+          ].map(({ label, href }) => (
+            <a
+              key={href}
+              href={href}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1.5 rounded-full border border-white/65 bg-white/45 px-4 py-2 text-xs font-semibold text-wine backdrop-blur-xl transition hover:bg-white/70"
+            >
+              <ExternalLink className="h-3 w-3" />
+              {label}
+            </a>
+          ))}
         </div>
 
         {sessionState !== "signed-in" ? (

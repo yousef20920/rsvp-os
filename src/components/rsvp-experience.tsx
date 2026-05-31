@@ -4,6 +4,7 @@ import Image from "next/image";
 import { AnimatePresence, motion, useInView } from "framer-motion";
 import {
   Check,
+  ChevronDown,
   Clock,
   Loader2,
   MapPin,
@@ -177,6 +178,25 @@ function HeroSection({ imageSrc }: { imageSrc: string }) {
             </div>
           </div>
         </div>
+
+        {/* Scroll to RSVP indicator */}
+        <motion.div
+          className="flex flex-col items-center gap-2"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 1.2, duration: 0.8 }}
+        >
+          <p className="text-xs font-semibold uppercase tracking-[0.25em] text-wine/70">
+            Scroll to RSVP
+          </p>
+          <motion.div
+            animate={{ y: [0, 6, 0] }}
+            transition={{ duration: 1.4, repeat: Infinity, ease: "easeInOut" }}
+          >
+            <ChevronDown className="h-5 w-5 text-wine/60" />
+          </motion.div>
+        </motion.div>
+
       </motion.div>
     </section>
   );
