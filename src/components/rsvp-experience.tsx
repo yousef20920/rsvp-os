@@ -121,11 +121,8 @@ function TimelineSection() {
     <section className="px-5 py-14 sm:py-20 sm:px-8 lg:px-12">
       <div className="mx-auto max-w-3xl">
         <ScrollReveal className="mb-10 text-center sm:mb-14">
-          <p className="mb-3 text-xs uppercase tracking-[0.28em] text-olive">
-            The Event Schedule
-          </p>
           <h2 className="font-display text-4xl text-ink sm:text-5xl">
-            A Beautiful Evening
+            Schedule of Events
           </h2>
           <p className="mt-3 text-sm text-ink/55">July 5th</p>
         </ScrollReveal>
