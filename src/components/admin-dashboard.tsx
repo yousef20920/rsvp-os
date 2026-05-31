@@ -201,9 +201,6 @@ export function AdminDashboard() {
         {sessionState !== "signed-in" ? (
           <section className="max-w-xl rounded-[2rem] border border-white/65 bg-white/38 p-6 shadow-glass backdrop-blur-2xl sm:p-8">
             <h2 className="font-display text-3xl text-ink">Admin sign in</h2>
-            <p className="mt-3 text-sm leading-7 text-ink/62">
-              Enter {ADMIN_EMAIL}. You will receive a magic link.
-            </p>
 
             <form onSubmit={sendLoginLink} className="mt-6 space-y-4">
               <label className="block">
@@ -211,7 +208,7 @@ export function AdminDashboard() {
                 <div className="relative">
                   <Mail className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-ink/38" />
                   <input
-                    className="premium-field pl-11"
+                    className="premium-field !pl-11"
                     type="email"
                     value={email}
                     onChange={(event) => setEmail(event.target.value)}
