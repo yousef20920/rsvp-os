@@ -124,9 +124,9 @@ function HeroSection() {
 
 function TimelineSection() {
   return (
-    <section className="px-5 py-20 sm:px-8 lg:px-12">
+    <section className="px-5 py-14 sm:py-20 sm:px-8 lg:px-12">
       <div className="mx-auto max-w-3xl">
-        <ScrollReveal className="mb-14 text-center">
+        <ScrollReveal className="mb-10 text-center sm:mb-14">
           <p className="mb-3 text-xs uppercase tracking-[0.28em] text-olive">
             The Event Schedule
           </p>
@@ -138,7 +138,7 @@ function TimelineSection() {
 
         <div className="relative">
           <div className="absolute left-[9px] top-2 h-[calc(100%-1rem)] w-px bg-gradient-to-b from-wine/25 via-wine/50 to-transparent" />
-          <div className="space-y-6">
+          <div className="space-y-4 sm:space-y-6">
             {timelineEvents.map((event) => (
               <TimelineItem key={event.title} event={event} />
             ))}
@@ -151,25 +151,25 @@ function TimelineSection() {
 
 function TimelineItem({ event }: { event: TimelineEvent }) {
   return (
-    <ScrollReveal className="flex gap-7">
-      <div className="relative mt-[1.55rem] shrink-0">
+    <ScrollReveal className="flex gap-4 sm:gap-7">
+      <div className="relative mt-[1.25rem] shrink-0 sm:mt-[1.55rem]">
         <div className="h-[19px] w-[19px] rounded-full border-2 border-wine bg-white shadow-[0_0_0_3px_rgba(111,48,50,0.1)]" />
       </div>
 
       <motion.div
-        className="flex-1 rounded-[1.35rem] border border-white/70 bg-white/50 p-6 shadow-[0_20px_60px_rgba(65,42,36,0.11)] backdrop-blur-xl transition hover:-translate-y-1 hover:bg-white/65"
+        className="flex-1 rounded-[1.2rem] border border-white/70 bg-white/50 p-4 shadow-[0_20px_60px_rgba(65,42,36,0.11)] backdrop-blur-xl transition sm:rounded-[1.35rem] sm:p-6 hover:-translate-y-1 hover:bg-white/65"
         whileHover={{ scale: 1.01 }}
       >
-        <h3 className="font-display text-3xl text-wine">{event.title}</h3>
+        <h3 className="font-display text-2xl text-wine sm:text-3xl">{event.title}</h3>
         <p className="mt-1 text-sm text-ink/55">{event.description}</p>
 
-        <div className="mt-5 grid gap-3 text-sm text-ink/70">
+        <div className="mt-4 grid gap-2 text-sm text-ink/70 sm:mt-5 sm:gap-3">
           <div className="flex items-center gap-3">
-            <Clock className="h-4 w-4 text-wine" />
+            <Clock className="h-4 w-4 shrink-0 text-wine" />
             <span>{event.time}</span>
           </div>
           <div className="flex items-center gap-3">
-            <MapPin className="h-4 w-4 text-wine" />
+            <MapPin className="h-4 w-4 shrink-0 text-wine" />
             <span>{event.location}</span>
           </div>
         </div>
@@ -193,7 +193,7 @@ function LocationSection() {
             href="https://maps.app.goo.gl/pMQSRpiYMAJbh9ou6"
             target="_blank"
             rel="noopener noreferrer"
-            className="mt-6 inline-flex h-12 items-center gap-2 rounded-full bg-wine px-6 text-sm font-semibold text-white shadow-[0_18px_50px_rgba(111,48,50,0.22)] transition hover:-translate-y-0.5 hover:bg-[#5f292b]"
+            className="mt-6 inline-flex h-12 w-full items-center justify-center gap-2 rounded-full bg-wine px-6 text-sm font-semibold text-white shadow-[0_18px_50px_rgba(111,48,50,0.22)] transition hover:-translate-y-0.5 hover:bg-[#5f292b] sm:w-auto"
           >
             <MapPin className="h-4 w-4" />
             Get Directions
