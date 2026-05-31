@@ -9,3 +9,10 @@ yarn-debug.log*
 yarn-error.log*
 .DS_Store
 *.tsbuildinfo
+.vercel
+.env*
+# Source images dropped in project root (real copies live in /public)
+*.jpeg
+*.jpg
+*.png
+*.webp
