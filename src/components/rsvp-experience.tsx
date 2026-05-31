@@ -3,14 +3,12 @@
 import Image from "next/image";
 import { AnimatePresence, motion, useInView } from "framer-motion";
 import {
-  CalendarDays,
   Check,
   Clock,
   Loader2,
   MapPin,
   Plus,
   Sparkles,
-  Star,
   Trash2
 } from "lucide-react";
 import { FormEvent, useMemo, useRef, useState } from "react";
@@ -127,7 +125,7 @@ function HeroSection() {
 function TimelineSection() {
   return (
     <section className="px-5 py-20 sm:px-8 lg:px-12">
-      <div className="mx-auto max-w-5xl">
+      <div className="mx-auto max-w-3xl">
         <ScrollReveal className="mb-14 text-center">
           <p className="mb-3 text-xs uppercase tracking-[0.28em] text-olive">
             The Event Schedule
@@ -138,12 +136,11 @@ function TimelineSection() {
           <p className="mt-3 text-sm text-ink/55">July 5th</p>
         </ScrollReveal>
 
-        <div className="relative mx-auto max-w-3xl">
-          <div className="absolute left-5 top-4 h-full w-px bg-gradient-to-b from-wine/20 via-wine/45 to-transparent sm:left-1/2 sm:-translate-x-1/2" />
-
-          <div className="space-y-10">
-            {timelineEvents.map((event, index) => (
-              <TimelineItem key={event.title} event={event} index={index} />
+        <div className="relative">
+          <div className="absolute left-[9px] top-2 h-[calc(100%-1rem)] w-px bg-gradient-to-b from-wine/25 via-wine/50 to-transparent" />
+          <div className="space-y-6">
+            {timelineEvents.map((event) => (
+              <TimelineItem key={event.title} event={event} />
             ))}
           </div>
         </div>
@@ -152,34 +149,21 @@ function TimelineSection() {
   );
 }
 
-function TimelineItem({ event, index }: { event: TimelineEvent; index: number }) {
+function TimelineItem({ event }: { event: TimelineEvent }) {
   return (
-    <ScrollReveal
-      className={`relative grid gap-5 pl-16 sm:grid-cols-2 sm:pl-0 ${
-        index % 2 === 0 ? "" : "sm:[&>div:first-child]:col-start-2"
-      }`}
-    >
-      <motion.div
-        className="absolute left-2 top-6 z-10 grid h-7 w-7 place-items-center rounded-full border border-white bg-wine text-white shadow-lg sm:left-1/2 sm:-translate-x-1/2"
-        whileHover={{ scale: 1.12 }}
-        transition={{ type: "spring", stiffness: 320, damping: 18 }}
-      >
-        <Star className="h-3.5 w-3.5 fill-current" />
-      </motion.div>
+    <ScrollReveal className="flex gap-7">
+      <div className="relative mt-[1.55rem] shrink-0">
+        <div className="h-[19px] w-[19px] rounded-full border-2 border-wine bg-white shadow-[0_0_0_3px_rgba(111,48,50,0.1)]" />
+      </div>
 
       <motion.div
-        className="group rounded-[1.35rem] border border-white/70 bg-white/50 p-6 shadow-[0_20px_60px_rgba(65,42,36,0.11)] backdrop-blur-xl transition hover:-translate-y-1 hover:bg-white/65"
-        whileHover={{ scale: 1.015 }}
+        className="flex-1 rounded-[1.35rem] border border-white/70 bg-white/50 p-6 shadow-[0_20px_60px_rgba(65,42,36,0.11)] backdrop-blur-xl transition hover:-translate-y-1 hover:bg-white/65"
+        whileHover={{ scale: 1.01 }}
       >
-        <div className="mb-5 flex items-start justify-between gap-4">
-          <div>
-            <h3 className="font-display text-3xl text-wine">{event.title}</h3>
-            <p className="mt-1 text-sm text-ink/55">{event.description}</p>
-          </div>
-          <CalendarDays className="h-5 w-5 text-olive" />
-        </div>
+        <h3 className="font-display text-3xl text-wine">{event.title}</h3>
+        <p className="mt-1 text-sm text-ink/55">{event.description}</p>
 
-        <div className="grid gap-3 text-sm text-ink/70">
+        <div className="mt-5 grid gap-3 text-sm text-ink/70">
           <div className="flex items-center gap-3">
             <Clock className="h-4 w-4 text-wine" />
             <span>{event.time}</span>
