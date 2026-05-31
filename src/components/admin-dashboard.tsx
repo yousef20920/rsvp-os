@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import { FormEvent, useEffect, useMemo, useState } from "react";
 import { isSupabaseConfigured, supabase } from "@/lib/supabase";
+import { SeatingChart } from "@/components/seating-chart";
 
 type RsvpRow = {
   id: string;
@@ -40,6 +41,7 @@ export function AdminDashboard() {
   const [isSendingLink, setIsSendingLink] = useState(false);
   const [isLoadingRows, setIsLoadingRows] = useState(false);
   const [openId, setOpenId] = useState<string | null>(null);
+  const [tab, setTab] = useState<"responses" | "seating">("responses");
   const configError = isSupabaseConfigured ? "" : "Supabase is not configured yet.";
 
   const attendingRows = rsvps.filter((rsvp) => rsvp.is_attending);
@@ -234,26 +236,45 @@ export function AdminDashboard() {
             <StatsGrid stats={stats} />
             <StatusMessage error={error} notice={notice} />
 
-            <section className="mt-6 overflow-hidden rounded-[2rem] border border-white/65 bg-white/38 shadow-glass backdrop-blur-2xl">
-              <div className="border-b border-white/60 px-5 py-4 sm:px-6">
-                <h2 className="font-display text-2xl text-ink">People who replied</h2>
-              </div>
+            <div className="mt-6 flex gap-2">
+              {(["responses", "seating"] as const).map((t) => (
+                <button
+                  key={t}
+                  onClick={() => setTab(t)}
+                  className={`rounded-full px-5 py-2 text-sm font-semibold capitalize transition ${
+                    tab === t
+                      ? "bg-wine text-white shadow-[0_8px_24px_rgba(111,48,50,0.25)]"
+                      : "border border-white/65 bg-white/42 text-ink/65 hover:bg-white/70"
+                  }`}
+                >
+                  {t === "responses" ? "Responses" : "Seating Chart"}
+                </button>
+              ))}
+            </div>
 
-              <div className="divide-y divide-white/55">
-                {rsvps.length === 0 ? (
-                  <p className="px-5 py-8 text-sm text-ink/58 sm:px-6">No RSVPs yet.</p>
-                ) : (
-                  rsvps.map((rsvp) => (
-                    <RsvpRowView
-                      key={rsvp.id}
-                      rsvp={rsvp}
-                      isOpen={openId === rsvp.id}
-                      onToggle={() => setOpenId((current) => (current === rsvp.id ? null : rsvp.id))}
-                    />
-                  ))
-                )}
-              </div>
-            </section>
+            {tab === "responses" ? (
+              <section className="mt-4 overflow-hidden rounded-[2rem] border border-white/65 bg-white/38 shadow-glass backdrop-blur-2xl">
+                <div className="border-b border-white/60 px-5 py-4 sm:px-6">
+                  <h2 className="font-display text-2xl text-ink">People who replied</h2>
+                </div>
+                <div className="divide-y divide-white/55">
+                  {rsvps.length === 0 ? (
+                    <p className="px-5 py-8 text-sm text-ink/58 sm:px-6">No RSVPs yet.</p>
+                  ) : (
+                    rsvps.map((rsvp) => (
+                      <RsvpRowView
+                        key={rsvp.id}
+                        rsvp={rsvp}
+                        isOpen={openId === rsvp.id}
+                        onToggle={() => setOpenId((current) => (current === rsvp.id ? null : rsvp.id))}
+                      />
+                    ))
+                  )}
+                </div>
+              </section>
+            ) : (
+              <SeatingChart rsvps={rsvps} />
+            )}
           </>
         )}
       </div>
