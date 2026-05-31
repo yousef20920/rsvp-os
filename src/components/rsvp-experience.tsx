@@ -135,6 +135,7 @@ function TimelineSection() {
           <h2 className="font-display text-4xl text-ink sm:text-5xl">
             A Beautiful Evening
           </h2>
+          <p className="mt-3 text-sm text-ink/55">July 5th</p>
         </ScrollReveal>
 
         <div className="relative mx-auto max-w-3xl">
@@ -181,9 +182,7 @@ function TimelineItem({ event, index }: { event: TimelineEvent; index: number })
         <div className="grid gap-3 text-sm text-ink/70">
           <div className="flex items-center gap-3">
             <Clock className="h-4 w-4 text-wine" />
-            <span>
-              {event.time} on {event.date}
-            </span>
+            <span>{event.time}</span>
           </div>
           <div className="flex items-center gap-3">
             <MapPin className="h-4 w-4 text-wine" />
