@@ -6,11 +6,11 @@ import {
   CalendarDays,
   Check,
   Clock,
-  Heart,
   Loader2,
   MapPin,
   Plus,
   Sparkles,
+  Star,
   Trash2
 } from "lucide-react";
 import { FormEvent, useMemo, useRef, useState } from "react";
@@ -163,7 +163,7 @@ function TimelineItem({ event, index }: { event: TimelineEvent; index: number })
         whileHover={{ scale: 1.12 }}
         transition={{ type: "spring", stiffness: 320, damping: 18 }}
       >
-        <Heart className="h-3.5 w-3.5 fill-current" />
+        <Star className="h-3.5 w-3.5 fill-current" />
       </motion.div>
 
       <motion.div
