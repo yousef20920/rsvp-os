@@ -43,30 +43,29 @@ const timelineEvents: TimelineEvent[] = [
     time: "6:00 PM",
     date: "July 5th",
     location: "Main Hall",
-    description: "Dinner, music, and an evening celebration with family and friends."
+    description: "Welcome reception as the evening begins."
+  },
+  {
+    title: "Zaffa & Dabka",
+    time: "6:45 PM",
+    date: "July 5th",
+    location: "Main Hall",
+    description: "Traditional Zaffa procession and Dabka folk dance."
+  },
+  {
+    title: "Bride & Groom Entrance",
+    time: "7:15 PM",
+    date: "July 5th",
+    location: "Hall F — Women",
+    description: "The couple makes their grand entrance."
+  },
+  {
+    title: "Dinner",
+    time: "8:00 PM (Men) · 8:30 PM (Women)",
+    date: "July 5th",
+    location: "Hall A (Men) · Hall F (Women)",
+    description: "Seated dinner service in the respective halls."
   }
-  // Add more events here:
-  // {
-  //   title: "Ceremony",
-  //   time: "4:30 PM",
-  //   date: "July 5th",
-  //   location: "Garden Terrace",
-  //   description: "A short outdoor ceremony before the reception."
-  // },
-  // {
-  //   title: "Dinner",
-  //   time: "7:00 PM",
-  //   date: "July 5th",
-  //   location: "Dining Room",
-  //   description: "A seated dinner service."
-  // },
-  // {
-  //   title: "First Dance",
-  //   time: "8:30 PM",
-  //   date: "July 5th",
-  //   location: "Dance Floor",
-  //   description: "The first dance and open dancing."
-  // }
 ];
 
 const fadeUp = {
@@ -84,6 +83,7 @@ export function RsvpExperience() {
 
       <HeroSection />
       <TimelineSection />
+      <LocationSection />
       <RsvpSection />
     </main>
   );
@@ -192,6 +192,31 @@ function TimelineItem({ event, index }: { event: TimelineEvent; index: number })
         </div>
       </motion.div>
     </ScrollReveal>
+  );
+}
+
+function LocationSection() {
+  return (
+    <section className="px-5 py-16 sm:px-8 lg:px-12">
+      <div className="mx-auto max-w-5xl">
+        <ScrollReveal className="text-center">
+          <p className="mb-3 text-xs uppercase tracking-[0.28em] text-olive">Venue</p>
+          <h2 className="font-display text-4xl text-ink sm:text-5xl">Getting There</h2>
+          <p className="mx-auto mt-5 max-w-sm text-sm leading-7 text-ink/58">
+            Men's Hall: A &nbsp;·&nbsp; Women's Hall: F
+          </p>
+          <a
+            href="https://maps.app.goo.gl/pMQSRpiYMAJbh9ou6"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="mt-6 inline-flex h-12 items-center gap-2 rounded-full bg-wine px-6 text-sm font-semibold text-white shadow-[0_18px_50px_rgba(111,48,50,0.22)] transition hover:-translate-y-0.5 hover:bg-[#5f292b]"
+          >
+            <MapPin className="h-4 w-4" />
+            Get Directions
+          </a>
+        </ScrollReveal>
+      </div>
+    </section>
   );
 }
 
