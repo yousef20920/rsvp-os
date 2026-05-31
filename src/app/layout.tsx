@@ -17,7 +17,7 @@ const playfair = Playfair_Display({
 export const metadata: Metadata = {
   title: "Wedding RSVP",
   description: "The wedding of Osama & Nour — You're invited.",
-  metadataBase: new URL("https://rsvp-on.vercel.app"),
+  metadataBase: new URL("https://osama-nour.com"),
 };
 
 export const viewport: Viewport = {
