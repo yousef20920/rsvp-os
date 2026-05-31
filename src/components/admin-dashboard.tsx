@@ -26,7 +26,7 @@ type RsvpRow = {
 };
 
 type SessionState = "loading" | "signed-out" | "signed-in";
-const ADMIN_EMAIL = "yousef.hadi.cs@gmail.com";
+const ADMIN_EMAILS = ["yousef.hadi.cs@gmail.com", "dr.osama.abdelhadi@gmail.com"];
 
 export function AdminDashboard() {
   const [sessionState, setSessionState] = useState<SessionState>(
@@ -119,12 +119,12 @@ export function AdminDashboard() {
     const currentEmail = userData.user?.email?.toLowerCase() ?? "";
     setSignedInEmail(currentEmail);
 
-    if (userError || currentEmail !== ADMIN_EMAIL) {
+    if (userError || !ADMIN_EMAILS.includes(currentEmail)) {
       setIsLoadingRows(false);
       setRsvps([]);
       setError(
         currentEmail
-          ? `Signed in as ${currentEmail}. Sign out and sign in as ${ADMIN_EMAIL} to view RSVPs.`
+          ? `Signed in as ${currentEmail}. This email is not authorized to view RSVPs.`
           : "Your admin session expired. Please sign in again."
       );
       return;
