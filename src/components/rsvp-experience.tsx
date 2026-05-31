@@ -142,7 +142,7 @@ export function RsvpExperience() {
       </div>
 
       <HeroSection />
-      <TimelineSection t={t} isAr={isAr} />
+      <TimelineSection t={t} />
       <LocationSection t={t} />
       <RsvpSection t={t} />
     </main>
@@ -179,7 +179,7 @@ function HeroSection() {
   );
 }
 
-function TimelineSection({ t, isAr }: { t: T; isAr: boolean }) {
+function TimelineSection({ t }: { t: T }) {
   return (
     <section className="px-5 py-14 sm:py-20 sm:px-8 lg:px-12">
       <div className="mx-auto max-w-3xl">
@@ -191,10 +191,10 @@ function TimelineSection({ t, isAr }: { t: T; isAr: boolean }) {
         </ScrollReveal>
 
         <div className="relative">
-          <div className={`absolute top-2 h-[calc(100%-1rem)] w-px bg-gradient-to-b from-wine/25 via-wine/50 to-transparent ${isAr ? "right-[9px]" : "left-[9px]"}`} />
+          <div className="absolute start-[9px] top-2 h-[calc(100%-1rem)] w-px bg-gradient-to-b from-wine/25 via-wine/50 to-transparent" />
           <div className="space-y-4 sm:space-y-6">
             {t.events.map((event) => (
-              <TimelineItem key={event.title} event={event} isAr={isAr} />
+              <TimelineItem key={event.title} event={event} />
             ))}
           </div>
         </div>
@@ -203,14 +203,12 @@ function TimelineSection({ t, isAr }: { t: T; isAr: boolean }) {
   );
 }
 
-function TimelineItem({ event, isAr }: { event: T["events"][number]; isAr: boolean }) {
+function TimelineItem({ event }: { event: T["events"][number] }) {
   return (
     <ScrollReveal className="flex gap-4 sm:gap-7">
-      {!isAr && (
-        <div className="relative mt-[1.25rem] shrink-0 sm:mt-[1.55rem]">
-          <div className="h-[19px] w-[19px] rounded-full border-2 border-wine bg-white shadow-[0_0_0_3px_rgba(111,48,50,0.1)]" />
-        </div>
-      )}
+      <div className="relative mt-[1.25rem] shrink-0 sm:mt-[1.55rem]">
+        <div className="h-[19px] w-[19px] rounded-full border-2 border-wine bg-white shadow-[0_0_0_3px_rgba(111,48,50,0.1)]" />
+      </div>
 
       <motion.div
         className="flex-1 rounded-[1.2rem] border border-white/70 bg-white/50 p-4 shadow-[0_20px_60px_rgba(65,42,36,0.11)] backdrop-blur-xl transition sm:rounded-[1.35rem] sm:p-6 hover:-translate-y-1 hover:bg-white/65"
@@ -230,12 +228,6 @@ function TimelineItem({ event, isAr }: { event: T["events"][number]; isAr: boole
           </div>
         </div>
       </motion.div>
-
-      {isAr && (
-        <div className="relative mt-[1.25rem] shrink-0 sm:mt-[1.55rem]">
-          <div className="h-[19px] w-[19px] rounded-full border-2 border-wine bg-white shadow-[0_0_0_3px_rgba(111,48,50,0.1)]" />
-        </div>
-      )}
     </ScrollReveal>
   );
 }
