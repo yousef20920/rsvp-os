@@ -1,5 +1,5 @@
-import { RsvpExperience } from "@/components/rsvp-experience";
+import { redirect } from "next/navigation";
 
 export default function Home() {
-  return <RsvpExperience />;
+  redirect("/osama");
 }

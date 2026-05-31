@@ -119,10 +119,13 @@ const fadeUp = {
   visible: { opacity: 1, y: 0 }
 };
 
-export function RsvpExperience() {
+type ImageConfig = { en: string; ar?: string };
+
+export function RsvpExperience({ images }: { images: ImageConfig }) {
   const [lang, setLang] = useState<Lang>("en");
   const t = translations[lang];
   const isAr = lang === "ar";
+  const imageSrc = isAr && images.ar ? images.ar : images.en;
 
   return (
     <main dir={isAr ? "rtl" : "ltr"} className="relative isolate overflow-hidden">
@@ -141,7 +144,7 @@ export function RsvpExperience() {
         </button>
       </div>
 
-      <HeroSection />
+      <HeroSection imageSrc={imageSrc} />
       <TimelineSection t={t} />
       <LocationSection t={t} />
       <RsvpSection t={t} />
@@ -149,7 +152,7 @@ export function RsvpExperience() {
   );
 }
 
-function HeroSection() {
+function HeroSection({ imageSrc }: { imageSrc: string }) {
   return (
     <section className="px-5 pb-20 pt-6 sm:px-8 lg:px-12 lg:pb-28">
       <motion.div
@@ -164,7 +167,7 @@ function HeroSection() {
           <div className="relative overflow-hidden rounded-[2rem] border border-white/70 bg-white/50 p-3 shadow-glass backdrop-blur-xl sm:p-4">
             <div className="relative aspect-[5/7] overflow-hidden rounded-[1.45rem] bg-porcelain">
               <Image
-                src="/invitation.jpg"
+                src={imageSrc}
                 alt="Wedding invitation card"
                 fill
                 priority
