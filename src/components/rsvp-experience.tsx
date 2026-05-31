@@ -45,6 +45,7 @@ const translations = {
     rsvpLabel: "Kindly Reply",
     rsvpTitle: "RSVP",
     rsvpSubtitle: "Please share your attendance details so we can prepare your place with care.",
+    rsvpDeadline: "Please RSVP by June 20",
     firstName: "First Name",
     lastName: "Last Name",
     attendingQuestion: "Will you be attending?",
@@ -86,6 +87,7 @@ const translations = {
     rsvpLabel: "الرجاء الرد",
     rsvpTitle: "تأكيد الحضور",
     rsvpSubtitle: "يُرجى مشاركة تفاصيل حضورك حتى نتمكن من تجهيز مكانك باهتمام.",
+    rsvpDeadline: "يُرجى تأكيد الحضور قبل ٢٠ يونيو",
     firstName: "الاسم الأول",
     lastName: "اسم العائلة",
     attendingQuestion: "هل ستحضر؟",
@@ -431,6 +433,7 @@ function RsvpForm({ t }: { t: T }) {
               <p className="mb-3 text-xs uppercase tracking-[0.28em] text-olive">{t.rsvpLabel}</p>
               <h2 className="font-display text-4xl text-ink sm:text-5xl">{t.rsvpTitle}</h2>
               <p className="mx-auto mt-4 max-w-xl text-sm leading-7 text-ink/58">{t.rsvpSubtitle}</p>
+              <p className="mt-3 text-xs font-semibold uppercase tracking-[0.2em] text-wine/70">{t.rsvpDeadline}</p>
             </div>
 
             <div className="grid gap-5 sm:grid-cols-2">
