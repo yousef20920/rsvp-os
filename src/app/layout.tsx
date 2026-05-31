@@ -16,7 +16,11 @@ const playfair = Playfair_Display({
 
 export const metadata: Metadata = {
   title: "Wedding RSVP",
-  description: "An elegant wedding RSVP experience."
+  description: "An elegant wedding RSVP experience.",
+  metadataBase: new URL(
+    process.env.NEXT_PUBLIC_SITE_URL ??
+      (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "http://localhost:3000")
+  ),
 };
 
 export const viewport: Viewport = {
