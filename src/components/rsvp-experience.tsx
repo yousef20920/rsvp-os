@@ -30,10 +30,10 @@ type T = typeof translations.en;
 const translations = {
   en: {
     events: [
-      { title: "Reception", time: "6:00 PM", location: "Main Hall", description: "Welcome reception as the evening begins." },
-      { title: "Zaffa & Dabka", time: "6:45 PM", location: "Main Hall", description: "Traditional Zaffa procession and Dabka folk dance." },
+      { title: "Reception", time: "6:00 PM", location: "", description: "Enjoy drinks from our soft bar." },
+      { title: "Zaffa & Dabka", time: "6:45 PM", location: "Hall A", description: "Traditional Zaffa procession and Dabka folk dance." },
       { title: "Bride & Groom Entrance", time: "7:15 PM", location: "Hall F — Women", description: "The couple makes their grand entrance." },
-      { title: "Dinner", time: "8:00 PM (Men) · 8:30 PM (Women)", location: "Hall A (Men) · Hall F (Women)", description: "Seated dinner service in the respective halls." }
+      { title: "Dinner", time: "8:00 PM (Men) · 8:30 PM (Women)", location: "Hall A (Men) · Hall F (Women)", description: "Open buffet in Hall A · Seated dinner in Hall F." }
     ],
     scheduleTitle: "Schedule of Events",
     scheduleDate: "July 5th",
@@ -71,10 +71,10 @@ const translations = {
   },
   ar: {
     events: [
-      { title: "الاستقبال", time: "٦:٠٠ مساءً", location: "القاعة الرئيسية", description: "حفل استقبال ترحيبي مع بداية السهرة." },
-      { title: "الزفة والدبكة", time: "٦:٤٥ مساءً", location: "القاعة الرئيسية", description: "زفة تقليدية وعروض دبكة شعبية." },
+      { title: "الاستقبال", time: "٦:٠٠ مساءً", location: "", description: "استمتع بالمشروبات من البار الخاص بنا." },
+      { title: "الزفة والدبكة", time: "٦:٤٥ مساءً", location: "قاعة A", description: "زفة تقليدية وعروض دبكة شعبية." },
       { title: "دخول العروسين", time: "٧:١٥ مساءً", location: "القاعة F — النساء", description: "يدخل العروسان بأبهى حلة." },
-      { title: "العشاء", time: "٨:٠٠ مساءً (رجال) · ٨:٣٠ مساءً (نساء)", location: "قاعة A (رجال) · قاعة F (نساء)", description: "عشاء في القاعات المخصصة." }
+      { title: "العشاء", time: "٨:٠٠ مساءً (رجال) · ٨:٣٠ مساءً (نساء)", location: "قاعة A (رجال) · قاعة F (نساء)", description: "بوفيه مفتوح في قاعة A · عشاء رسمي في قاعة F." }
     ],
     scheduleTitle: "جدول الفعاليات",
     scheduleDate: "٥ يوليو",
@@ -245,10 +245,12 @@ function TimelineItem({ event }: { event: T["events"][number] }) {
             <Clock className="h-4 w-4 shrink-0 text-wine" />
             <span>{event.time}</span>
           </div>
-          <div className="flex items-center gap-3">
-            <MapPin className="h-4 w-4 shrink-0 text-wine" />
-            <span>{event.location}</span>
-          </div>
+          {event.location ? (
+            <div className="flex items-center gap-3">
+              <MapPin className="h-4 w-4 shrink-0 text-wine" />
+              <span>{event.location}</span>
+            </div>
+          ) : null}
         </div>
       </motion.div>
     </ScrollReveal>
