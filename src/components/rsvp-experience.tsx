@@ -15,6 +15,7 @@ import { isSupabaseConfigured, supabase } from "@/lib/supabase";
 
 type Attendance = "yes" | "no" | "";
 type Gender = "male" | "female" | "";
+type Lang = "en" | "ar";
 
 type GuestName = {
   id: string;
@@ -23,47 +24,95 @@ type GuestName = {
   gender: Gender;
 };
 
-type TimelineEvent = {
-  title: string;
-  time: string;
-  date: string;
-  location: string;
-  description: string;
+type T = typeof translations.en;
+
+const translations = {
+  en: {
+    events: [
+      { title: "Reception", time: "6:00 PM", location: "Main Hall", description: "Welcome reception as the evening begins." },
+      { title: "Zaffa & Dabka", time: "6:45 PM", location: "Main Hall", description: "Traditional Zaffa procession and Dabka folk dance." },
+      { title: "Bride & Groom Entrance", time: "7:15 PM", location: "Hall F — Women", description: "The couple makes their grand entrance." },
+      { title: "Dinner", time: "8:00 PM (Men) · 8:30 PM (Women)", location: "Hall A (Men) · Hall F (Women)", description: "Seated dinner service in the respective halls." }
+    ],
+    scheduleTitle: "Schedule of Events",
+    scheduleDate: "July 5th",
+    venueLabel: "Venue",
+    venueTitle: "Getting There",
+    venueName: "Mississauga Convention Centre",
+    hallInfo: "Men's Hall: A · Women's Hall: F",
+    getDirections: "Get Directions",
+    rsvpLabel: "Kindly Reply",
+    rsvpTitle: "RSVP",
+    rsvpSubtitle: "Please share your attendance details so we can prepare your place with care.",
+    firstName: "First Name",
+    lastName: "Last Name",
+    attendingQuestion: "Will you be attending?",
+    yes: "Yes",
+    no: "No",
+    guestsTitle: "Guests",
+    guestsSubtitle: "Add each person attending, including you.",
+    add: "Add",
+    party: "Party",
+    male: "Male",
+    female: "Female",
+    gender: "Gender",
+    remove: "Remove",
+    submit: "Submit RSVP",
+    sending: "Sending",
+    receivedLabel: "RSVP Received",
+    thanksTitle: "Thank you",
+    thanksMessage: "Your response has been recorded. We are grateful to celebrate this day with the people closest to us.",
+    duplicateGuest: "Each guest should only be listed once.",
+    errorDuplicate: "We already received an RSVP for this name. Please contact us if you need to make a change.",
+    errorPermission: "This RSVP did not pass the database security rules. Please check the names and guest list.",
+    errorGeneral: "We could not save your RSVP. Please try again.",
+    errorConfig: "Supabase is not configured yet. Add your public anon key."
+  },
+  ar: {
+    events: [
+      { title: "الاستقبال", time: "٦:٠٠ مساءً", location: "القاعة الرئيسية", description: "حفل استقبال ترحيبي مع بداية السهرة." },
+      { title: "الزفة والدبكة", time: "٦:٤٥ مساءً", location: "القاعة الرئيسية", description: "زفة تقليدية وعروض دبكة شعبية." },
+      { title: "دخول العروسين", time: "٧:١٥ مساءً", location: "القاعة F — النساء", description: "يدخل العروسان بأبهى حلة." },
+      { title: "العشاء", time: "٨:٠٠ مساءً (رجال) · ٨:٣٠ مساءً (نساء)", location: "قاعة A (رجال) · قاعة F (نساء)", description: "عشاء في القاعات المخصصة." }
+    ],
+    scheduleTitle: "جدول الفعاليات",
+    scheduleDate: "٥ يوليو",
+    venueLabel: "المكان",
+    venueTitle: "كيف تصل",
+    venueName: "مركز مسيسوغا للمؤتمرات",
+    hallInfo: "قاعة الرجال: A · قاعة النساء: F",
+    getDirections: "احصل على الاتجاهات",
+    rsvpLabel: "الرجاء الرد",
+    rsvpTitle: "تأكيد الحضور",
+    rsvpSubtitle: "يُرجى مشاركة تفاصيل حضورك حتى نتمكن من تجهيز مكانك باهتمام.",
+    firstName: "الاسم الأول",
+    lastName: "اسم العائلة",
+    attendingQuestion: "هل ستحضر؟",
+    yes: "نعم",
+    no: "لا",
+    guestsTitle: "الضيوف",
+    guestsSubtitle: "أضف كل شخص سيحضر، بما فيك أنت.",
+    add: "إضافة",
+    party: "المجموعة",
+    male: "ذكر",
+    female: "أنثى",
+    gender: "الجنس",
+    remove: "إزالة",
+    submit: "إرسال التأكيد",
+    sending: "جارٍ الإرسال",
+    receivedLabel: "تم استلام التأكيد",
+    thanksTitle: "شكراً لك",
+    thanksMessage: "تم تسجيل ردك. يسعدنا الاحتفال بهذا اليوم مع أعزّ الناس إلينا.",
+    duplicateGuest: "لا يجب إدراج كل ضيف إلا مرة واحدة.",
+    errorDuplicate: "لقد تلقينا بالفعل تأكيداً لهذا الاسم. يرجى التواصل معنا إذا أردت إجراء تغيير.",
+    errorPermission: "لم يجتز هذا التأكيد قواعد الأمان. يرجى التحقق من الأسماء.",
+    errorGeneral: "لم نتمكن من حفظ تأكيدك. يرجى المحاولة مرة أخرى.",
+    errorConfig: "لم يتم تكوين Supabase بعد."
+  }
 };
 
 const MAX_NAME_LENGTH = 80;
 const MAX_GUESTS = 20;
-
-const timelineEvents: TimelineEvent[] = [
-  {
-    title: "Reception",
-    time: "6:00 PM",
-    date: "July 5th",
-    location: "Main Hall",
-    description: "Welcome reception as the evening begins."
-  },
-  {
-    title: "Zaffa & Dabka",
-    time: "6:45 PM",
-    date: "July 5th",
-    location: "Main Hall",
-    description: "Traditional Zaffa procession and Dabka folk dance."
-  },
-  {
-    title: "Bride & Groom Entrance",
-    time: "7:15 PM",
-    date: "July 5th",
-    location: "Hall F — Women",
-    description: "The couple makes their grand entrance."
-  },
-  {
-    title: "Dinner",
-    time: "8:00 PM (Men) · 8:30 PM (Women)",
-    date: "July 5th",
-    location: "Hall A (Men) · Hall F (Women)",
-    description: "Seated dinner service in the respective halls."
-  }
-];
 
 const fadeUp = {
   hidden: { opacity: 0, y: 28 },
@@ -71,24 +120,38 @@ const fadeUp = {
 };
 
 export function RsvpExperience() {
+  const [lang, setLang] = useState<Lang>("en");
+  const t = translations[lang];
+  const isAr = lang === "ar";
+
   return (
-    <main className="relative isolate overflow-hidden">
+    <main dir={isAr ? "rtl" : "ltr"} className="relative isolate overflow-hidden">
       <div className="pointer-events-none absolute inset-0 -z-10 opacity-60">
         <div className="absolute left-1/2 top-0 h-[42rem] w-[42rem] -translate-x-1/2 rounded-full bg-champagne/40 blur-3xl" />
         <div className="absolute bottom-36 left-0 h-[28rem] w-[28rem] rounded-full bg-blush/20 blur-3xl" />
       </div>
 
+      <div className="flex justify-end px-5 pt-5 sm:px-8 lg:px-12">
+        <button
+          type="button"
+          onClick={() => setLang(isAr ? "en" : "ar")}
+          className="rounded-full border border-white/60 bg-white/45 px-4 py-2 text-xs font-semibold uppercase tracking-[0.18em] text-wine shadow-sm backdrop-blur-xl transition hover:bg-white/65"
+        >
+          {isAr ? "English" : "العربية"}
+        </button>
+      </div>
+
       <HeroSection />
-      <TimelineSection />
-      <LocationSection />
-      <RsvpSection />
+      <TimelineSection t={t} isAr={isAr} />
+      <LocationSection t={t} />
+      <RsvpSection t={t} />
     </main>
   );
 }
 
 function HeroSection() {
   return (
-    <section className="px-5 pb-20 pt-8 sm:px-8 lg:px-12 lg:pb-28">
+    <section className="px-5 pb-20 pt-6 sm:px-8 lg:px-12 lg:pb-28">
       <motion.div
         className="mx-auto flex max-w-6xl flex-col items-center gap-8"
         initial="hidden"
@@ -116,22 +179,22 @@ function HeroSection() {
   );
 }
 
-function TimelineSection() {
+function TimelineSection({ t, isAr }: { t: T; isAr: boolean }) {
   return (
     <section className="px-5 py-14 sm:py-20 sm:px-8 lg:px-12">
       <div className="mx-auto max-w-3xl">
         <ScrollReveal className="mb-10 text-center sm:mb-14">
           <h2 className="font-display text-4xl text-ink sm:text-5xl">
-            Schedule of Events
+            {t.scheduleTitle}
           </h2>
-          <p className="mt-3 text-sm text-ink/55">July 5th</p>
+          <p className="mt-3 text-sm text-ink/55">{t.scheduleDate}</p>
         </ScrollReveal>
 
         <div className="relative">
-          <div className="absolute left-[9px] top-2 h-[calc(100%-1rem)] w-px bg-gradient-to-b from-wine/25 via-wine/50 to-transparent" />
+          <div className={`absolute top-2 h-[calc(100%-1rem)] w-px bg-gradient-to-b from-wine/25 via-wine/50 to-transparent ${isAr ? "right-[9px]" : "left-[9px]"}`} />
           <div className="space-y-4 sm:space-y-6">
-            {timelineEvents.map((event) => (
-              <TimelineItem key={event.title} event={event} />
+            {t.events.map((event) => (
+              <TimelineItem key={event.title} event={event} isAr={isAr} />
             ))}
           </div>
         </div>
@@ -140,12 +203,14 @@ function TimelineSection() {
   );
 }
 
-function TimelineItem({ event }: { event: TimelineEvent }) {
+function TimelineItem({ event, isAr }: { event: T["events"][number]; isAr: boolean }) {
   return (
     <ScrollReveal className="flex gap-4 sm:gap-7">
-      <div className="relative mt-[1.25rem] shrink-0 sm:mt-[1.55rem]">
-        <div className="h-[19px] w-[19px] rounded-full border-2 border-wine bg-white shadow-[0_0_0_3px_rgba(111,48,50,0.1)]" />
-      </div>
+      {!isAr && (
+        <div className="relative mt-[1.25rem] shrink-0 sm:mt-[1.55rem]">
+          <div className="h-[19px] w-[19px] rounded-full border-2 border-wine bg-white shadow-[0_0_0_3px_rgba(111,48,50,0.1)]" />
+        </div>
+      )}
 
       <motion.div
         className="flex-1 rounded-[1.2rem] border border-white/70 bg-white/50 p-4 shadow-[0_20px_60px_rgba(65,42,36,0.11)] backdrop-blur-xl transition sm:rounded-[1.35rem] sm:p-6 hover:-translate-y-1 hover:bg-white/65"
@@ -165,21 +230,25 @@ function TimelineItem({ event }: { event: TimelineEvent }) {
           </div>
         </div>
       </motion.div>
+
+      {isAr && (
+        <div className="relative mt-[1.25rem] shrink-0 sm:mt-[1.55rem]">
+          <div className="h-[19px] w-[19px] rounded-full border-2 border-wine bg-white shadow-[0_0_0_3px_rgba(111,48,50,0.1)]" />
+        </div>
+      )}
     </ScrollReveal>
   );
 }
 
-function LocationSection() {
+function LocationSection({ t }: { t: T }) {
   return (
     <section className="px-5 py-16 sm:px-8 lg:px-12">
       <div className="mx-auto max-w-5xl">
         <ScrollReveal className="text-center">
-          <p className="mb-3 text-xs uppercase tracking-[0.28em] text-olive">Venue</p>
-          <h2 className="font-display text-4xl text-ink sm:text-5xl">Getting There</h2>
-          <p className="mt-5 font-display text-2xl text-ink">Mississauga Convention Centre</p>
-          <p className="mx-auto mt-2 max-w-sm text-sm leading-7 text-ink/58">
-            Men's Hall: A &nbsp;·&nbsp; Women's Hall: F
-          </p>
+          <p className="mb-3 text-xs uppercase tracking-[0.28em] text-olive">{t.venueLabel}</p>
+          <h2 className="font-display text-4xl text-ink sm:text-5xl">{t.venueTitle}</h2>
+          <p className="mt-5 font-display text-2xl text-ink">{t.venueName}</p>
+          <p className="mx-auto mt-2 max-w-sm text-sm leading-7 text-ink/58">{t.hallInfo}</p>
           <a
             href="https://maps.app.goo.gl/pMQSRpiYMAJbh9ou6"
             target="_blank"
@@ -187,7 +256,7 @@ function LocationSection() {
             className="mt-6 inline-flex h-12 w-full items-center justify-center gap-2 rounded-full bg-wine px-6 text-sm font-semibold text-white shadow-[0_18px_50px_rgba(111,48,50,0.22)] transition hover:-translate-y-0.5 hover:bg-[#5f292b] sm:w-auto"
           >
             <MapPin className="h-4 w-4" />
-            Get Directions
+            {t.getDirections}
           </a>
         </ScrollReveal>
       </div>
@@ -195,17 +264,17 @@ function LocationSection() {
   );
 }
 
-function RsvpSection() {
+function RsvpSection({ t }: { t: T }) {
   return (
     <section className="px-5 pb-28 pt-14 sm:px-8 lg:px-12">
       <ScrollReveal className="mx-auto max-w-3xl">
-        <RsvpForm />
+        <RsvpForm t={t} />
       </ScrollReveal>
     </section>
   );
 }
 
-function RsvpForm() {
+function RsvpForm({ t }: { t: T }) {
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [attendance, setAttendance] = useState<Attendance>("");
@@ -219,92 +288,61 @@ function RsvpForm() {
 
   const attending = attendance === "yes";
   const partySize = guestNames.length;
-  const maleGuests = guestNames.filter((guest) => guest.gender === "male").length;
-  const femaleGuests = guestNames.filter((guest) => guest.gender === "female").length;
-  const normalizedGuestNames = guestNames.map((guest) =>
-    `${guest.firstName.trim()} ${guest.lastName.trim()}`
-      .replace(/\s+/g, " ")
-      .toLowerCase()
+  const maleGuests = guestNames.filter((g) => g.gender === "male").length;
+  const femaleGuests = guestNames.filter((g) => g.gender === "female").length;
+  const normalizedGuestNames = guestNames.map((g) =>
+    `${g.firstName.trim()} ${g.lastName.trim()}`.replace(/\s+/g, " ").toLowerCase()
   );
   const hasDuplicateGuests =
     attending && new Set(normalizedGuestNames.filter(Boolean)).size !== normalizedGuestNames.length;
   const hasGuestNames = !attending
     ? true
     : guestNames.every(
-        (guest) =>
-          guest.firstName.trim().length > 0 &&
-          guest.firstName.trim().length <= MAX_NAME_LENGTH &&
-          guest.lastName.trim().length > 0 &&
-          guest.lastName.trim().length <= MAX_NAME_LENGTH &&
-          guest.gender
+        (g) =>
+          g.firstName.trim().length > 0 &&
+          g.firstName.trim().length <= MAX_NAME_LENGTH &&
+          g.lastName.trim().length > 0 &&
+          g.lastName.trim().length <= MAX_NAME_LENGTH &&
+          g.gender
       ) && !hasDuplicateGuests;
 
   const canSubmit = useMemo(() => {
-    if (!firstName.trim() || !lastName.trim() || !attendance) {
-      return false;
-    }
-
-    if (attending) {
-      return partySize >= 1 && hasGuestNames;
-    }
-
+    if (!firstName.trim() || !lastName.trim() || !attendance) return false;
+    if (attending) return partySize >= 1 && hasGuestNames;
     return true;
   }, [attendance, attending, firstName, hasGuestNames, lastName, partySize]);
 
-  function selectAttendance(nextAttendance: Attendance) {
-    setAttendance(nextAttendance);
-
-    if (nextAttendance === "yes") {
+  function selectAttendance(next: Attendance) {
+    setAttendance(next);
+    if (next === "yes") {
       setGuestNames((current) => {
-        if (current.some((guest) => guest.firstName || guest.lastName || guest.gender)) {
-          return current;
-        }
-
-        return [
-          {
-            ...current[0],
-            firstName: firstName.trim(),
-            lastName: lastName.trim()
-          }
-        ];
+        if (current.some((g) => g.firstName || g.lastName || g.gender)) return current;
+        return [{ ...current[0], firstName: firstName.trim(), lastName: lastName.trim() }];
       });
     }
   }
 
   function addGuest() {
-    if (guestNames.length >= MAX_GUESTS) {
-      return;
-    }
-
-    const id = `guest-${nextGuestId.current}`;
-    nextGuestId.current += 1;
-
-    setGuestNames((current) => [
-      ...current,
-      { id, firstName: "", lastName: "", gender: "" }
-    ]);
+    if (guestNames.length >= MAX_GUESTS) return;
+    const id = `guest-${nextGuestId.current++}`;
+    setGuestNames((current) => [...current, { id, firstName: "", lastName: "", gender: "" }]);
   }
 
   function removeGuest(id: string) {
     setGuestNames((current) =>
-      current.length === 1 ? current : current.filter((guest) => guest.id !== id)
+      current.length === 1 ? current : current.filter((g) => g.id !== id)
     );
   }
 
-  function updateGuestName(id: string, field: keyof Omit<GuestName, "id">, value: string) {
+  function updateGuest(id: string, field: keyof Omit<GuestName, "id">, value: string) {
     setGuestNames((current) =>
-      current.map((guest) =>
-        guest.id === id ? { ...guest, [field]: value as GuestName[typeof field] } : guest
-      )
+      current.map((g) => (g.id === id ? { ...g, [field]: value as GuestName[typeof field] } : g))
     );
   }
 
   async function submitRsvp(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-
-    if (!canSubmit || isSubmitting) {
-      return;
-    }
+    if (!canSubmit || isSubmitting) return;
 
     setSubmitError("");
     setIsSubmitting(true);
@@ -317,39 +355,23 @@ function RsvpForm() {
       male_guests: attending ? maleGuests : 0,
       female_guests: attending ? femaleGuests : 0,
       guest_names: attending
-        ? guestNames.map(
-            (guest) =>
-              `${guest.firstName.trim()} ${guest.lastName.trim()} (${
-                guest.gender === "male" ? "Male" : "Female"
-              })`
-          )
+        ? guestNames.map((g) => `${g.firstName.trim()} ${g.lastName.trim()} (${g.gender === "male" ? "Male" : "Female"})`)
         : []
     };
 
     if (!isSupabaseConfigured || !supabase) {
       setIsSubmitting(false);
-      setSubmitError("Supabase is not configured yet. Add your public anon key.");
+      setSubmitError(t.errorConfig);
       return;
     }
 
     const { error } = await supabase.from("rsvps").insert(payload);
-
     setIsSubmitting(false);
 
     if (error) {
-      if (error.code === "23505") {
-        setSubmitError(
-          "We already received an RSVP for this name. Please contact us if you need to make a change."
-        );
-        return;
-      }
-
-      if (error.code === "42501") {
-        setSubmitError("This RSVP did not pass the database security rules. Please check the names and guest list.");
-        return;
-      }
-
-      setSubmitError("We could not save your RSVP. Please try again.");
+      if (error.code === "23505") { setSubmitError(t.errorDuplicate); return; }
+      if (error.code === "42501") { setSubmitError(t.errorPermission); return; }
+      setSubmitError(t.errorGeneral);
       return;
     }
 
@@ -374,14 +396,9 @@ function RsvpForm() {
             <div className="mx-auto mb-7 grid h-16 w-16 place-items-center rounded-full bg-wine text-white shadow-xl">
               <Check className="h-8 w-8" />
             </div>
-            <p className="mb-3 text-xs uppercase tracking-[0.28em] text-olive">
-              RSVP Received
-            </p>
-            <h2 className="font-display text-4xl text-ink sm:text-5xl">Thank you</h2>
-            <p className="mx-auto mt-5 max-w-xl text-base leading-8 text-ink/65">
-              Your response has been recorded. We are grateful to celebrate this
-              day with the people closest to us.
-            </p>
+            <p className="mb-3 text-xs uppercase tracking-[0.28em] text-olive">{t.receivedLabel}</p>
+            <h2 className="font-display text-4xl text-ink sm:text-5xl">{t.thanksTitle}</h2>
+            <p className="mx-auto mt-5 max-w-xl text-base leading-8 text-ink/65">{t.thanksMessage}</p>
           </motion.div>
         ) : (
           <motion.form
@@ -394,46 +411,21 @@ function RsvpForm() {
             transition={{ duration: 0.3 }}
           >
             <div className="mb-8 text-center">
-              <p className="mb-3 text-xs uppercase tracking-[0.28em] text-olive">
-                Kindly Reply
-              </p>
-              <h2 className="font-display text-4xl text-ink sm:text-5xl">RSVP</h2>
-              <p className="mx-auto mt-4 max-w-xl text-sm leading-7 text-ink/58">
-                Please share your attendance details so we can prepare your place
-                with care.
-              </p>
+              <p className="mb-3 text-xs uppercase tracking-[0.28em] text-olive">{t.rsvpLabel}</p>
+              <h2 className="font-display text-4xl text-ink sm:text-5xl">{t.rsvpTitle}</h2>
+              <p className="mx-auto mt-4 max-w-xl text-sm leading-7 text-ink/58">{t.rsvpSubtitle}</p>
             </div>
 
             <div className="grid gap-5 sm:grid-cols-2">
-              <TextField
-                label="First Name"
-                value={firstName}
-                onChange={setFirstName}
-                autoComplete="given-name"
-              />
-              <TextField
-                label="Last Name"
-                value={lastName}
-                onChange={setLastName}
-                autoComplete="family-name"
-              />
+              <TextField label={t.firstName} value={firstName} onChange={setFirstName} autoComplete="given-name" />
+              <TextField label={t.lastName} value={lastName} onChange={setLastName} autoComplete="family-name" />
             </div>
 
             <fieldset className="mt-7">
-              <legend className="mb-3 text-sm font-medium text-ink/75">
-                Will you be attending?
-              </legend>
+              <legend className="mb-3 text-sm font-medium text-ink/75">{t.attendingQuestion}</legend>
               <div className="grid gap-3 sm:grid-cols-2">
-                <RadioCard
-                  label="Yes"
-                  selected={attendance === "yes"}
-                  onClick={() => selectAttendance("yes")}
-                />
-                <RadioCard
-                  label="No"
-                  selected={attendance === "no"}
-                  onClick={() => selectAttendance("no")}
-                />
+                <RadioCard label={t.yes} selected={attendance === "yes"} onClick={() => selectAttendance("yes")} />
+                <RadioCard label={t.no} selected={attendance === "no"} onClick={() => selectAttendance("no")} />
               </div>
             </fieldset>
 
@@ -447,18 +439,16 @@ function RsvpForm() {
                   transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
                 >
                   <div className="grid gap-3 sm:grid-cols-3">
-                    <SummaryPill label="Party" value={partySize} />
-                    <SummaryPill label="Male" value={maleGuests} />
-                    <SummaryPill label="Female" value={femaleGuests} />
+                    <SummaryPill label={t.party} value={partySize} />
+                    <SummaryPill label={t.male} value={maleGuests} />
+                    <SummaryPill label={t.female} value={femaleGuests} />
                   </div>
 
                   <div>
                     <div className="mb-4 flex items-center justify-between gap-4">
                       <div>
-                        <h3 className="font-display text-2xl text-ink">Guests</h3>
-                        <p className="mt-1 text-sm text-ink/55">
-                          Add each person attending, including you.
-                        </p>
+                        <h3 className="font-display text-2xl text-ink">{t.guestsTitle}</h3>
+                        <p className="mt-1 text-sm text-ink/55">{t.guestsSubtitle}</p>
                       </div>
                       <button
                         type="button"
@@ -467,9 +457,10 @@ function RsvpForm() {
                         className="inline-flex h-11 shrink-0 items-center justify-center gap-2 rounded-full border border-wine/20 bg-white/55 px-4 text-sm font-semibold text-wine shadow-sm transition hover:-translate-y-0.5 hover:bg-white/75 disabled:cursor-not-allowed disabled:opacity-45 disabled:hover:translate-y-0"
                       >
                         <Plus className="h-4 w-4" />
-                        Add
+                        {t.add}
                       </button>
                     </div>
+
                     <div className="space-y-4">
                       {guestNames.map((guest, index) => (
                         <motion.div
@@ -484,36 +475,40 @@ function RsvpForm() {
                             {index + 1}
                           </div>
                           <TextField
-                            label="First Name"
+                            label={t.firstName}
                             value={guest.firstName}
-                            onChange={(value) => updateGuestName(guest.id, "firstName", value)}
+                            onChange={(v) => updateGuest(guest.id, "firstName", v)}
                             autoComplete="given-name"
                           />
                           <TextField
-                            label="Last Name"
+                            label={t.lastName}
                             value={guest.lastName}
-                            onChange={(value) => updateGuestName(guest.id, "lastName", value)}
+                            onChange={(v) => updateGuest(guest.id, "lastName", v)}
                             autoComplete="family-name"
                           />
                           <div className="grid gap-3 sm:col-span-4 sm:grid-cols-[1fr_auto] lg:col-span-1 lg:block">
                             <GenderField
                               value={guest.gender}
-                              onChange={(value) => updateGuestName(guest.id, "gender", value)}
+                              onChange={(v) => updateGuest(guest.id, "gender", v)}
+                              maleLabel={t.male}
+                              femaleLabel={t.female}
+                              genderLabel={t.gender}
                             />
                             <button
                               type="button"
                               onClick={() => removeGuest(guest.id)}
                               disabled={guestNames.length === 1}
                               className="inline-flex h-11 items-center justify-center gap-2 rounded-full border border-wine/15 bg-white/45 px-4 text-sm font-medium text-wine transition hover:bg-white/70 disabled:cursor-not-allowed disabled:opacity-35 sm:self-end lg:mt-7 lg:w-11 lg:px-0"
-                              aria-label={`Remove guest ${index + 1}`}
+                              aria-label={`${t.remove} ${index + 1}`}
                             >
                               <Trash2 className="h-4 w-4" />
-                              <span className="lg:hidden">Remove</span>
+                              <span className="lg:hidden">{t.remove}</span>
                             </button>
                           </div>
                         </motion.div>
                       ))}
                     </div>
+
                     <AnimatePresence>
                       {hasDuplicateGuests ? (
                         <motion.p
@@ -523,7 +518,7 @@ function RsvpForm() {
                           exit={{ opacity: 0 }}
                           transition={{ duration: 0.45 }}
                         >
-                          Each guest should only be listed once.
+                          {t.duplicateGuest}
                         </motion.p>
                       ) : null}
                     </AnimatePresence>
@@ -553,10 +548,10 @@ function RsvpForm() {
               {isSubmitting ? (
                 <>
                   <Loader2 className="h-5 w-5 animate-spin" />
-                  Sending
+                  {t.sending}
                 </>
               ) : (
-                "Submit RSVP"
+                t.submit
               )}
             </button>
           </motion.form>
@@ -567,15 +562,9 @@ function RsvpForm() {
 }
 
 function TextField({
-  label,
-  value,
-  onChange,
-  autoComplete
+  label, value, onChange, autoComplete
 }: {
-  label: string;
-  value: string;
-  onChange: (value: string) => void;
-  autoComplete: string;
+  label: string; value: string; onChange: (value: string) => void; autoComplete: string;
 }) {
   return (
     <label className="block">
@@ -583,7 +572,7 @@ function TextField({
       <input
         className="premium-field"
         value={value}
-        onChange={(event) => onChange(event.target.value)}
+        onChange={(e) => onChange(e.target.value)}
         placeholder={label}
         autoComplete={autoComplete}
         maxLength={MAX_NAME_LENGTH}
@@ -602,38 +591,29 @@ function SummaryPill({ label, value }: { label: string; value: number }) {
 }
 
 function GenderField({
-  value,
-  onChange
+  value, onChange, maleLabel, femaleLabel, genderLabel
 }: {
   value: Gender;
   onChange: (value: Gender) => void;
+  maleLabel: string;
+  femaleLabel: string;
+  genderLabel: string;
 }) {
   return (
     <fieldset>
-      <legend className="mb-2 block text-sm font-medium text-ink/72">Gender</legend>
+      <legend className="mb-2 block text-sm font-medium text-ink/72">{genderLabel}</legend>
       <div className="grid grid-cols-2 gap-2 lg:w-44">
-        <GenderButton label="Male" value="male" selected={value === "male"} onClick={onChange} />
-        <GenderButton
-          label="Female"
-          value="female"
-          selected={value === "female"}
-          onClick={onChange}
-        />
+        <GenderButton label={maleLabel} value="male" selected={value === "male"} onClick={onChange} />
+        <GenderButton label={femaleLabel} value="female" selected={value === "female"} onClick={onChange} />
       </div>
     </fieldset>
   );
 }
 
 function GenderButton({
-  label,
-  value,
-  selected,
-  onClick
+  label, value, selected, onClick
 }: {
-  label: string;
-  value: Exclude<Gender, "">;
-  selected: boolean;
-  onClick: (value: Exclude<Gender, "">) => void;
+  label: string; value: Exclude<Gender, "">; selected: boolean; onClick: (value: Exclude<Gender, "">) => void;
 }) {
   return (
     <button
@@ -651,20 +631,12 @@ function GenderButton({
   );
 }
 
-function RadioCard({
-  label,
-  selected,
-  onClick
-}: {
-  label: string;
-  selected: boolean;
-  onClick: () => void;
-}) {
+function RadioCard({ label, selected, onClick }: { label: string; selected: boolean; onClick: () => void }) {
   return (
     <button
       type="button"
       onClick={onClick}
-      className={`flex items-center justify-between rounded-[1.15rem] border px-5 py-4 text-left transition ${
+      className={`flex items-center justify-between rounded-[1.15rem] border px-5 py-4 transition ${
         selected
           ? "border-wine/45 bg-wine/10 text-wine shadow-[0_14px_35px_rgba(111,48,50,0.12)]"
           : "border-white/65 bg-white/38 text-ink/70 hover:bg-white/62"
@@ -672,24 +644,14 @@ function RadioCard({
       aria-pressed={selected}
     >
       <span className="font-medium">{label}</span>
-      <span
-        className={`grid h-6 w-6 place-items-center rounded-full border ${
-          selected ? "border-wine bg-wine text-white" : "border-ink/18"
-        }`}
-      >
+      <span className={`grid h-6 w-6 place-items-center rounded-full border ${selected ? "border-wine bg-wine text-white" : "border-ink/18"}`}>
         {selected ? <Check className="h-3.5 w-3.5" /> : null}
       </span>
     </button>
   );
 }
 
-function ScrollReveal({
-  children,
-  className
-}: {
-  children: React.ReactNode;
-  className?: string;
-}) {
+function ScrollReveal({ children, className }: { children: React.ReactNode; className?: string }) {
   const ref = useRef<HTMLDivElement | null>(null);
   const isInView = useInView(ref, { once: true, margin: "-80px" });
 
