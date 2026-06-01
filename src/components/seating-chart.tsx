@@ -105,12 +105,13 @@ function TableUnit({
 const AISLE_W = 56; // px — width of the bridal walkway
 
 function HallView({
-  tableCount, hallMap, selected, onSeatClick,
+  tableCount, hallMap, selected, onSeatClick, showAisle,
 }: {
   tableCount: number;
   hallMap: HallMap;
   selected: string | null;
   onSeatClick: (t: number, s: number, current: string | null) => void;
+  showAisle: boolean;
 }) {
   const leftCount  = Math.ceil(tableCount / 2);
   const rightCount = tableCount - leftCount;
@@ -129,12 +130,14 @@ function HallView({
         </div>
 
         {/* Aisle stub connecting stage to tables */}
-        <div className="flex justify-center">
-          <div
-            style={{ width: AISLE_W }}
-            className="h-4 bg-gradient-to-b from-[#f0ddd0]/70 to-[#f5e8de]/50 border-x border-wine/15"
-          />
-        </div>
+        {showAisle && (
+          <div className="flex justify-center">
+            <div
+              style={{ width: AISLE_W }}
+              className="h-4 bg-gradient-to-b from-[#f0ddd0]/70 to-[#f5e8de]/50 border-x border-wine/15"
+            />
+          </div>
+        )}
 
         {/* Section labels row */}
         <div className="mb-2 flex items-end justify-center">
@@ -157,10 +160,10 @@ function HallView({
             ))}
           </div>
 
-          {/* Bridal walkway */}
+          {/* Bridal walkway — women's hall only */}
           <div
             className="relative mx-0 shrink-0 overflow-hidden"
-            style={{ width: AISLE_W, height: gridHeight }}
+            style={{ width: AISLE_W, height: gridHeight, visibility: showAisle ? "visible" : "hidden" }}
           >
             {/* Carpet background */}
             <div className="absolute inset-0 bg-gradient-to-b from-[#f0ddd0]/60 via-[#edddd0]/50 to-[#f0ddd0]/40 border-x border-wine/15" />
@@ -352,6 +355,7 @@ export function SeatingChart({ rsvps }: { rsvps: RsvpRow[] }) {
           </AnimatePresence>
 
           <HallView
+            showAisle={hall === "women"}
             tableCount={HALL[hall].tables}
             hallMap={hallMap}
             selected={selected}

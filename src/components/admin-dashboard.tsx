@@ -45,6 +45,7 @@ export function AdminDashboard() {
   const [isLoadingRows, setIsLoadingRows] = useState(false);
   const [openId, setOpenId] = useState<string | null>(null);
   const [tab, setTab] = useState<"responses" | "seating">("responses");
+  const [search, setSearch] = useState("");
   const configError = isSupabaseConfigured ? "" : "Supabase is not configured yet.";
 
   const attendingRows = rsvps.filter((rsvp) => rsvp.is_attending);
@@ -310,23 +311,45 @@ export function AdminDashboard() {
             {tab === "responses" ? (
               <section className="mt-4 overflow-hidden rounded-[2rem] border border-white/65 bg-white/38 shadow-glass backdrop-blur-2xl">
                 <div className="border-b border-white/60 px-5 py-4 sm:px-6">
-                  <h2 className="font-display text-2xl text-ink">People who replied</h2>
+                  <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                    <h2 className="font-display text-2xl text-ink">People who replied</h2>
+                    <div className="relative">
+                      <input
+                        className="premium-field !py-2 !text-sm w-full sm:w-56"
+                        type="search"
+                        placeholder="Search by name…"
+                        value={search}
+                        onChange={(e) => setSearch(e.target.value)}
+                      />
+                    </div>
+                  </div>
                 </div>
                 <div className="divide-y divide-white/55">
                   {rsvps.length === 0 ? (
                     <p className="px-5 py-8 text-sm text-ink/58 sm:px-6">No RSVPs yet.</p>
-                  ) : (
-                    rsvps.map((rsvp) => (
-                      <RsvpRowView
-                        key={rsvp.id}
-                        rsvp={rsvp}
-                        isOpen={openId === rsvp.id}
-                        onToggle={() => setOpenId((current) => (current === rsvp.id ? null : rsvp.id))}
-                        onDelete={() => deleteRsvp(rsvp.id)}
-                        onRemoveGuest={(g) => removeGuest(rsvp, g)}
-                      />
-                    ))
-                  )}
+                  ) : (() => {
+                    const q = search.toLowerCase().trim();
+                    const filtered = q
+                      ? rsvps.filter((r) =>
+                          `${r.first_name} ${r.last_name}`.toLowerCase().includes(q) ||
+                          r.guest_names.some((g) => g.toLowerCase().includes(q))
+                        )
+                      : rsvps;
+                    return filtered.length === 0 ? (
+                      <p className="px-5 py-8 text-sm text-ink/58 sm:px-6">No results for "{search}".</p>
+                    ) : (
+                      filtered.map((rsvp) => (
+                        <RsvpRowView
+                          key={rsvp.id}
+                          rsvp={rsvp}
+                          isOpen={openId === rsvp.id}
+                          onToggle={() => setOpenId((current) => (current === rsvp.id ? null : rsvp.id))}
+                          onDelete={() => deleteRsvp(rsvp.id)}
+                          onRemoveGuest={(g) => removeGuest(rsvp, g)}
+                        />
+                      ))
+                    );
+                  })()}
                 </div>
               </section>
             ) : (
