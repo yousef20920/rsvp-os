@@ -8,8 +8,10 @@ import {
   Mail,
   RefreshCw,
   ShieldCheck,
+  Trash2,
   UserRound,
-  Users
+  Users,
+  X
 } from "lucide-react";
 import { FormEvent, useEffect, useMemo, useState } from "react";
 import { isSupabaseConfigured, supabase } from "@/lib/supabase";
@@ -151,6 +153,38 @@ export function AdminDashboard() {
     setRsvps((data ?? []) as RsvpRow[]);
   }
 
+  async function getAuthHeader() {
+    const { data } = await supabase!.auth.getSession();
+    return { Authorization: `Bearer ${data.session?.access_token}` };
+  }
+
+  async function deleteRsvp(id: string) {
+    const headers = await getAuthHeader();
+    const res = await fetch(`/api/admin/rsvp?id=${id}`, { method: "DELETE", headers });
+    if (res.ok) setRsvps((prev) => prev.filter((r) => r.id !== id));
+    else setError("Failed to delete RSVP.");
+  }
+
+  async function removeGuest(rsvp: RsvpRow, guestName: string) {
+    const updatedNames = rsvp.guest_names.filter((g) => g !== guestName);
+    const male = updatedNames.filter((g) => g.endsWith("(Male)")).length;
+    const female = updatedNames.filter((g) => g.endsWith("(Female)")).length;
+    const headers = { ...(await getAuthHeader()), "Content-Type": "application/json" };
+    const res = await fetch(`/api/admin/rsvp?id=${rsvp.id}`, {
+      method: "PATCH",
+      headers,
+      body: JSON.stringify({ guest_names: updatedNames, party_size: updatedNames.length, male_guests: male, female_guests: female }),
+    });
+    if (res.ok) {
+      setRsvps((prev) => prev.map((r) => r.id === rsvp.id
+        ? { ...r, guest_names: updatedNames, party_size: updatedNames.length, male_guests: male, female_guests: female }
+        : r
+      ));
+    } else {
+      setError("Failed to remove guest.");
+    }
+  }
+
   async function signOut() {
     if (!supabase) {
       return;
@@ -288,6 +322,8 @@ export function AdminDashboard() {
                         rsvp={rsvp}
                         isOpen={openId === rsvp.id}
                         onToggle={() => setOpenId((current) => (current === rsvp.id ? null : rsvp.id))}
+                        onDelete={() => deleteRsvp(rsvp.id)}
+                        onRemoveGuest={(g) => removeGuest(rsvp, g)}
                       />
                     ))
                   )}
@@ -341,34 +377,66 @@ function StatsGrid({
 function RsvpRowView({
   rsvp,
   isOpen,
-  onToggle
+  onToggle,
+  onDelete,
+  onRemoveGuest,
 }: {
   rsvp: RsvpRow;
   isOpen: boolean;
   onToggle: () => void;
+  onDelete: () => void;
+  onRemoveGuest: (guest: string) => void;
 }) {
+  const [confirmDelete, setConfirmDelete] = useState(false);
+
   return (
     <div>
-      <button
-        type="button"
-        onClick={onToggle}
-        className="flex w-full items-center justify-between gap-4 px-5 py-5 text-left transition hover:bg-white/28 sm:px-6"
-      >
-        <div>
-          <p className="font-display text-2xl text-ink">
-            {rsvp.first_name} {rsvp.last_name}
-          </p>
-          <p className="mt-1 text-sm text-ink/55">
-            {rsvp.is_attending
-              ? `${rsvp.party_size} attending`
-              : "Not attending"}{" "}
-            · {new Date(rsvp.created_at).toLocaleDateString()}
-          </p>
-        </div>
-        <ChevronDown
-          className={`h-5 w-5 shrink-0 text-wine transition ${isOpen ? "rotate-180" : ""}`}
-        />
-      </button>
+      <div className="flex items-center gap-2 px-5 sm:px-6">
+        <button
+          type="button"
+          onClick={onToggle}
+          className="flex flex-1 items-center justify-between gap-4 py-5 text-left transition hover:opacity-75"
+        >
+          <div>
+            <p className="font-display text-2xl text-ink">
+              {rsvp.first_name} {rsvp.last_name}
+            </p>
+            <p className="mt-1 text-sm text-ink/55">
+              {rsvp.is_attending ? `${rsvp.party_size} attending` : "Not attending"}{" "}
+              · {new Date(rsvp.created_at).toLocaleDateString()}
+            </p>
+          </div>
+          <ChevronDown className={`h-5 w-5 shrink-0 text-wine transition ${isOpen ? "rotate-180" : ""}`} />
+        </button>
+
+        {/* Delete button */}
+        {confirmDelete ? (
+          <div className="flex shrink-0 items-center gap-2">
+            <button
+              type="button"
+              onClick={() => { onDelete(); setConfirmDelete(false); }}
+              className="rounded-full bg-wine px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-[#5f292b]"
+            >
+              Confirm
+            </button>
+            <button
+              type="button"
+              onClick={() => setConfirmDelete(false)}
+              className="rounded-full border border-white/65 bg-white/45 px-3 py-1.5 text-xs font-semibold text-ink/60 transition hover:bg-white/70"
+            >
+              Cancel
+            </button>
+          </div>
+        ) : (
+          <button
+            type="button"
+            onClick={() => setConfirmDelete(true)}
+            className="shrink-0 rounded-full border border-wine/15 bg-white/45 p-2 text-wine/50 transition hover:border-wine/30 hover:bg-white/70 hover:text-wine"
+          >
+            <Trash2 className="h-4 w-4" />
+          </button>
+        )}
+      </div>
 
       <AnimatePresence>
         {isOpen ? (
@@ -386,8 +454,16 @@ function RsvpRowView({
                 ) : (
                   <ul className="grid gap-2 text-sm text-ink/72">
                     {rsvp.guest_names.map((guest) => (
-                      <li key={guest} className="rounded-xl bg-white/42 px-3 py-2">
-                        {guest}
+                      <li key={guest} className="flex items-center justify-between gap-3 rounded-xl bg-white/42 px-3 py-2">
+                        <span>{guest}</span>
+                        <button
+                          type="button"
+                          onClick={() => onRemoveGuest(guest)}
+                          className="shrink-0 rounded-full p-1 text-ink/30 transition hover:bg-wine/10 hover:text-wine"
+                          title="Remove guest"
+                        >
+                          <X className="h-3.5 w-3.5" />
+                        </button>
                       </li>
                     ))}
                   </ul>
