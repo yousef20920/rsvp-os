@@ -102,6 +102,8 @@ function TableUnit({
 
 // ─── Hall view ────────────────────────────────────────────────────────────────
 
+const AISLE_W = 56; // px — width of the bridal walkway
+
 function HallView({
   tableCount, hallMap, selected, onSeatClick,
 }: {
@@ -112,77 +114,85 @@ function HallView({
 }) {
   const leftCount  = Math.ceil(tableCount / 2);
   const rightCount = tableCount - leftCount;
+  const tableRows  = Math.ceil(leftCount / 2);
+  // height of the tables grid (rows × BOX + gaps between rows)
+  const gridHeight = tableRows * BOX + Math.max(tableRows - 1, 0) * 12;
 
   return (
-    <div className="overflow-x-auto pb-4">
-      <div className="mx-auto w-fit min-w-full px-2">
+    <div className="overflow-x-auto touch-pan-x pb-4 -mx-4 px-4 sm:mx-0 sm:px-0">
+      <div className="mx-auto w-fit">
 
         {/* Stage */}
-        <div className="relative mb-2 flex h-12 items-center justify-center rounded-2xl border border-wine/30 bg-gradient-to-b from-wine/18 to-wine/6 shadow-inner">
-          <span className="text-[11px] font-bold uppercase tracking-[0.3em] text-wine/55">
-            ✦ Stage ✦
-          </span>
-          <div className="absolute bottom-0 inset-x-8 h-px bg-gradient-to-r from-transparent via-wine/25 to-transparent" />
+        <div className="relative flex h-14 items-center justify-center rounded-2xl border border-wine/35 bg-gradient-to-b from-wine/22 to-wine/8 shadow-inner">
+          <span className="text-[11px] font-bold uppercase tracking-[0.32em] text-wine/65">✦ Stage ✦</span>
+          <div className="absolute bottom-0 inset-x-6 h-px bg-gradient-to-r from-transparent via-wine/30 to-transparent" />
         </div>
 
-        {/* Arrow down from stage */}
-        <div className="mb-6 flex justify-center">
-          <div className="h-6 w-px bg-gradient-to-b from-wine/30 to-transparent" />
+        {/* Aisle stub connecting stage to tables */}
+        <div className="flex justify-center">
+          <div
+            style={{ width: AISLE_W }}
+            className="h-4 bg-gradient-to-b from-[#f0ddd0]/70 to-[#f5e8de]/50 border-x border-wine/15"
+          />
         </div>
 
-        {/* Two halves + aisle */}
-        <div className="flex items-start justify-center gap-6">
+        {/* Section labels row */}
+        <div className="mb-2 flex items-end justify-center">
+          <p className="text-center text-[10px] font-semibold uppercase tracking-[0.18em] text-ink/30"
+             style={{ width: 2 * BOX + 12 }}>Left</p>
+          <div style={{ width: AISLE_W }} />
+          <p className="text-center text-[10px] font-semibold uppercase tracking-[0.18em] text-ink/30"
+             style={{ width: 2 * BOX + 12 }}>Right</p>
+        </div>
 
-          {/* Left half — 2 columns */}
-          <div>
-            <p className="mb-3 text-center text-[10px] font-semibold uppercase tracking-[0.2em] text-ink/30">
-              Left
-            </p>
-            <div className="grid grid-cols-2 gap-3">
-              {Array.from({ length: leftCount }, (_, i) => (
-                <TableUnit
-                  key={i}
-                  index={i}
-                  seats={getSeats(hallMap, i)}
-                  selected={selected}
-                  onSeatClick={onSeatClick}
-                />
-              ))}
-            </div>
+        {/* Tables + bridal aisle */}
+        <div className="flex items-start justify-center">
+
+          {/* Left tables — 2 columns */}
+          <div className="grid grid-cols-2 gap-3">
+            {Array.from({ length: leftCount }, (_, i) => (
+              <TableUnit key={i} index={i}
+                seats={getSeats(hallMap, i)}
+                selected={selected} onSeatClick={onSeatClick} />
+            ))}
           </div>
 
-          {/* Aisle */}
-          <div className="flex flex-col items-center pt-8">
-            <div className="h-full w-px flex-1 bg-gradient-to-b from-ink/12 via-ink/8 to-transparent" style={{ minHeight: Math.ceil(leftCount / 2) * (BOX + 28) }} />
+          {/* Bridal walkway */}
+          <div
+            className="relative mx-0 shrink-0 overflow-hidden"
+            style={{ width: AISLE_W, height: gridHeight }}
+          >
+            {/* Carpet background */}
+            <div className="absolute inset-0 bg-gradient-to-b from-[#f0ddd0]/60 via-[#edddd0]/50 to-[#f0ddd0]/40 border-x border-wine/15" />
+            {/* Centre dashed line */}
+            <div className="absolute left-1/2 top-0 bottom-0 -translate-x-1/2"
+                 style={{ width: 1, backgroundImage: "repeating-linear-gradient(to bottom, rgba(111,48,50,0.25) 0px, rgba(111,48,50,0.25) 6px, transparent 6px, transparent 14px)" }} />
+            {/* Entrance label */}
             <span
-              className="my-3 text-[9px] font-semibold uppercase tracking-[0.3em] text-ink/22"
-              style={{ writingMode: "vertical-rl" }}
+              className="absolute bottom-3 left-1/2 -translate-x-1/2 text-[8px] font-bold uppercase tracking-widest text-wine/35 whitespace-nowrap"
+              style={{ writingMode: "vertical-rl", transform: "translateX(-50%) rotate(180deg)" }}
             >
-              Aisle
+              Entrance
             </span>
           </div>
 
-          {/* Right half — 2 columns */}
-          <div>
-            <p className="mb-3 text-center text-[10px] font-semibold uppercase tracking-[0.2em] text-ink/30">
-              Right
-            </p>
-            <div className="grid grid-cols-2 gap-3">
-              {Array.from({ length: rightCount }, (_, i) => (
-                <TableUnit
-                  key={leftCount + i}
-                  index={leftCount + i}
-                  seats={getSeats(hallMap, leftCount + i)}
-                  selected={selected}
-                  onSeatClick={onSeatClick}
-                />
-              ))}
-              {/* Keep grid even if right side has an odd count */}
-              {rightCount % 2 !== 0 && <div style={{ width: BOX }} />}
-            </div>
+          {/* Right tables — 2 columns */}
+          <div className="grid grid-cols-2 gap-3">
+            {Array.from({ length: rightCount }, (_, i) => (
+              <TableUnit key={leftCount + i} index={leftCount + i}
+                seats={getSeats(hallMap, leftCount + i)}
+                selected={selected} onSeatClick={onSeatClick} />
+            ))}
+            {rightCount % 2 !== 0 && <div style={{ width: BOX }} />}
           </div>
 
         </div>
+
+        {/* Mobile scroll hint */}
+        <p className="mt-3 text-center text-[10px] text-ink/25 sm:hidden">
+          ← scroll to see full hall →
+        </p>
+
       </div>
     </div>
   );
