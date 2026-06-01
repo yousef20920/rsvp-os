@@ -6,14 +6,14 @@ export const metadata: Metadata = {
   openGraph: {
     title: "You're Invited",
     description: "The wedding of Osama & Nour — You're invited. Please RSVP by June 20.",
-    images: [{ url: "/men-english.jpeg", width: 1200, height: 630 }],
+    images: [{ url: "/men-english.png", width: 1200, height: 630 }],
   },
 };
 
 export default function MenPage() {
   return (
     <RsvpExperience
-      images={{ en: "/men-english.jpeg", ar: "/men-arabic.jpeg" }}
+      images={{ en: "/men-english.png", ar: "/men-arabic.jpeg" }}
     />
   );
 }

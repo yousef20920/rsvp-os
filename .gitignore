@@ -12,7 +12,7 @@ yarn-error.log*
 .vercel
 .env*
 # Source images dropped in project root (real copies live in /public)
-*.jpeg
-*.jpg
-*.png
-*.webp
+/*.jpeg
+/*.jpg
+/*.png
+/*.webp
