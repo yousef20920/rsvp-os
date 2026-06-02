@@ -336,7 +336,7 @@ export function AdminDashboard() {
                         )
                       : rsvps;
                     return filtered.length === 0 ? (
-                      <p className="px-5 py-8 text-sm text-ink/58 sm:px-6">No results for "{search}".</p>
+                      <p className="px-5 py-8 text-sm text-ink/58 sm:px-6">No results for &quot;{search}&quot;.</p>
                     ) : (
                       filtered.map((rsvp) => (
                         <RsvpRowView
@@ -378,11 +378,12 @@ function StatsGrid({
     { label: "People Coming", value: stats.peopleComing, icon: Users },
     { label: "Female Guests", value: stats.femaleGuests, icon: UserRound },
     { label: "Male Guests", value: stats.maleGuests, icon: UserRound },
+    { label: "Not Attending", value: stats.notAttendingResponses, icon: X },
     { label: "Responses", value: stats.responses, icon: Mail }
   ];
 
   return (
-    <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+    <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
       {cards.map((card) => (
         <div
           key={card.label}
@@ -421,9 +422,20 @@ function RsvpRowView({
           className="flex flex-1 items-center justify-between gap-4 py-5 text-left transition hover:opacity-75"
         >
           <div>
-            <p className="font-display text-2xl text-ink">
-              {rsvp.first_name} {rsvp.last_name}
-            </p>
+            <div className="flex flex-wrap items-center gap-2">
+              <p className="font-display text-2xl text-ink">
+                {rsvp.first_name} {rsvp.last_name}
+              </p>
+              <span
+                className={`rounded-full px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.16em] ${
+                  rsvp.is_attending
+                    ? "bg-olive/10 text-olive"
+                    : "bg-wine/10 text-wine"
+                }`}
+              >
+                {rsvp.is_attending ? "Yes" : "No"}
+              </span>
+            </div>
             <p className="mt-1 text-sm text-ink/55">
               {rsvp.is_attending ? `${rsvp.party_size} attending` : "Not attending"}{" "}
               · {new Date(rsvp.created_at).toLocaleDateString()}

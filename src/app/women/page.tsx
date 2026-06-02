@@ -1,21 +1,9 @@
 import type { Metadata } from "next";
 import { RsvpExperience } from "@/components/rsvp-experience";
+import { invitationMetadata, invitations } from "@/lib/invitations";
 
-export const metadata: Metadata = {
-  title: "You're Invited",
-  openGraph: {
-    title: "You're Invited",
-    description: "The wedding of Osama & Nour — You're invited. Please RSVP by June 20.",
-    url: "https://osama-nour.com/women",
-    type: "website",
-    images: [{ url: "/women-english.jpeg" }],
-  },
-};
+export const metadata: Metadata = invitationMetadata(invitations.women);
 
 export default function WomenPage() {
-  return (
-    <RsvpExperience
-      images={{ en: "/women-english.jpeg", ar: "/women-arabic.png" }}
-    />
-  );
+  return <RsvpExperience images={invitations.women.images} />;
 }

@@ -12,6 +12,7 @@ import {
   Trash2
 } from "lucide-react";
 import { FormEvent, useMemo, useRef, useState } from "react";
+import type { InvitationImages } from "@/lib/invitations";
 import { isSupabaseConfigured, supabase } from "@/lib/supabase";
 
 type Attendance = "yes" | "no" | "";
@@ -122,9 +123,7 @@ const fadeUp = {
   visible: { opacity: 1, y: 0 }
 };
 
-type ImageConfig = { en: string; ar?: string };
-
-export function RsvpExperience({ images }: { images: ImageConfig }) {
+export function RsvpExperience({ images }: { images: InvitationImages }) {
   const [lang, setLang] = useState<Lang>("en");
   const t = translations[lang];
   const isAr = lang === "ar";

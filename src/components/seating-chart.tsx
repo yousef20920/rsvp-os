@@ -4,10 +4,8 @@ import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X } from "lucide-react";
 
-type Hall = "men" | "women";
 type Seats = (string | null)[];
 type HallMap = Record<number, Seats>;
-type Assignments = { men: HallMap; women: HallMap };
 
 type RsvpRow = {
   is_attending: boolean;
@@ -15,10 +13,7 @@ type RsvpRow = {
 };
 
 const SEATS_PER_TABLE = 8;
-const HALL = {
-  men:   { label: "Men's Hall",   tables: 19 },
-  women: { label: "Women's Hall", tables: 13 },
-};
+const WOMENS_HALL = { label: "Women's Hall", tables: 13 };
 
 // Table circle dimensions
 const R  = 38;   // radius from center to seat center
@@ -27,6 +22,22 @@ const BOX = (R + S / 2 + 6) * 2; // full container size per table
 
 function emptySeats(): Seats       { return Array(SEATS_PER_TABLE).fill(null); }
 function getSeats(m: HallMap, t: number): Seats { return m[t] ?? emptySeats(); }
+
+function initialAssignments(): HallMap {
+  const fallback = {};
+
+  if (typeof window === "undefined") {
+    return fallback;
+  }
+
+  try {
+    const stored = localStorage.getItem("seating-v1");
+    const parsed = stored ? JSON.parse(stored) : fallback;
+    return parsed.women ?? parsed;
+  } catch {
+    return fallback;
+  }
+}
 
 function initials(name: string) {
   return name.split(" ").slice(0, 2).map((w) => w[0]?.toUpperCase() ?? "").join("");
@@ -204,54 +215,45 @@ function HallView({
 // ─── Main component ───────────────────────────────────────────────────────────
 
 export function SeatingChart({ rsvps }: { rsvps: RsvpRow[] }) {
-  const [hall, setHall]           = useState<Hall>("men");
-  const [assignments, setAssign]  = useState<Assignments>({ men: {}, women: {} });
+  const [assignments, setAssign]  = useState<HallMap>(initialAssignments);
   const [selected, setSelected]   = useState<string | null>(null);
-
-  useEffect(() => {
-    try { const r = localStorage.getItem("seating-v1"); if (r) setAssign(JSON.parse(r)); } catch {}
-  }, []);
 
   useEffect(() => {
     localStorage.setItem("seating-v1", JSON.stringify(assignments));
   }, [assignments]);
 
   const allNames = rsvps.filter((r) => r.is_attending).flatMap((r) => r.guest_names);
-  const pool = {
-    men:   allNames.filter((n) => n.endsWith("(Male)")).map((n)   => n.replace(" (Male)", "")),
-    women: allNames.filter((n) => n.endsWith("(Female)")).map((n) => n.replace(" (Female)", "")),
-  };
-
-  const hallMap   = assignments[hall];
+  const pool = allNames.filter((n) => n.endsWith("(Female)")).map((n) => n.replace(" (Female)", ""));
+  const hallMap   = assignments;
   const assigned  = new Set(Object.values(hallMap).flat().filter(Boolean) as string[]);
-  const unassigned = pool[hall].filter((g) => !assigned.has(g));
+  const unassigned = pool.filter((g) => !assigned.has(g));
   const seated    = assigned.size;
-  const total     = pool[hall].length;
+  const total     = pool.length;
 
   function handleSeatClick(t: number, s: number, current: string | null) {
     if (current) {
       setAssign((prev) => {
-        const map = { ...prev[hall] };
+        const map = { ...prev };
         const seats = [...getSeats(map, t)];
         seats[s] = null;
         map[t] = seats;
-        return { ...prev, [hall]: map };
+        return map;
       });
     } else if (selected) {
       setAssign((prev) => {
-        const map = { ...prev[hall] };
+        const map = { ...prev };
         const seats = [...getSeats(map, t)];
         if (seats[s] !== null) return prev;
         seats[s] = selected;
         map[t] = seats;
-        return { ...prev, [hall]: map };
+        return map;
       });
       setSelected(null);
     }
   }
 
   function clearHall() {
-    setAssign((prev) => ({ ...prev, [hall]: {} }));
+    setAssign({});
     setSelected(null);
   }
 
@@ -260,20 +262,9 @@ export function SeatingChart({ rsvps }: { rsvps: RsvpRow[] }) {
 
       {/* Header */}
       <div className="flex flex-wrap items-center justify-between gap-3 border-b border-white/60 px-5 py-4 sm:px-6">
-        <div className="flex gap-2">
-          {(["men", "women"] as Hall[]).map((h) => (
-            <button
-              key={h}
-              onClick={() => { setHall(h); setSelected(null); }}
-              className={`rounded-full px-4 py-2 text-sm font-semibold transition ${
-                hall === h
-                  ? "bg-wine text-white shadow-[0_8px_24px_rgba(111,48,50,0.25)]"
-                  : "border border-white/65 bg-white/42 text-ink/65 hover:bg-white/70"
-              }`}
-            >
-              {HALL[h].label}
-            </button>
-          ))}
+        <div>
+          <h2 className="font-display text-2xl text-ink">{WOMENS_HALL.label}</h2>
+          <p className="mt-1 text-sm text-ink/50">Seating chart for attending female guests.</p>
         </div>
         <div className="flex items-center gap-3">
           <span className="text-sm text-ink/55">
@@ -355,8 +346,8 @@ export function SeatingChart({ rsvps }: { rsvps: RsvpRow[] }) {
           </AnimatePresence>
 
           <HallView
-            showAisle={hall === "women"}
-            tableCount={HALL[hall].tables}
+            showAisle
+            tableCount={WOMENS_HALL.tables}
             hallMap={hallMap}
             selected={selected}
             onSeatClick={handleSeatClick}
