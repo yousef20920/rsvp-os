@@ -13,7 +13,6 @@ import {
 } from "lucide-react";
 import { FormEvent, useMemo, useRef, useState } from "react";
 import type { InvitationImages } from "@/lib/invitations";
-import { isSupabaseConfigured, supabase } from "@/lib/supabase";
 
 type Attendance = "yes" | "no" | "";
 type Gender = "male" | "female" | "";
@@ -67,9 +66,10 @@ const translations = {
     thanksMessage: "Your response has been recorded. We are grateful to celebrate this day with the people closest to us.",
     duplicateGuest: "Each guest should only be listed once.",
     errorDuplicate: "We already received an RSVP for this name. Please contact us if you need to make a change.",
+    errorRateLimited: "Too many RSVP attempts were sent from this connection. Please wait a few minutes and try again.",
     errorPermission: "This RSVP did not pass the database security rules. Please check the names and guest list.",
     errorGeneral: "We could not save your RSVP. Please try again.",
-    errorConfig: "Supabase is not configured yet. Add your public anon key."
+    errorConfig: "RSVP submissions are not configured yet."
   },
   ar: {
     events: [
@@ -109,9 +109,10 @@ const translations = {
     thanksMessage: "تم تسجيل ردك. يسعدنا الاحتفال بهذا اليوم مع أعزّ الناس إلينا.",
     duplicateGuest: "لا يجب إدراج كل ضيف إلا مرة واحدة.",
     errorDuplicate: "لقد تلقينا بالفعل تأكيداً لهذا الاسم. يرجى التواصل معنا إذا أردت إجراء تغيير.",
+    errorRateLimited: "تم إرسال عدد كبير من محاولات التأكيد من هذا الاتصال. يرجى الانتظار بضع دقائق ثم المحاولة مرة أخرى.",
     errorPermission: "لم يجتز هذا التأكيد قواعد الأمان. يرجى التحقق من الأسماء.",
     errorGeneral: "لم نتمكن من حفظ تأكيدك. يرجى المحاولة مرة أخرى.",
-    errorConfig: "لم يتم تكوين Supabase بعد."
+    errorConfig: "لم يتم تكوين إرسال التأكيد بعد."
   }
 };
 
@@ -377,18 +378,21 @@ function RsvpForm({ t }: { t: T }) {
         : []
     };
 
-    if (!isSupabaseConfigured || !supabase) {
-      setIsSubmitting(false);
-      setSubmitError(t.errorConfig);
-      return;
-    }
-
-    const { error } = await supabase.from("rsvps").insert(payload);
+    const response = await fetch("/api/rsvp", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify(payload)
+    });
     setIsSubmitting(false);
 
-    if (error) {
-      if (error.code === "23505") { setSubmitError(t.errorDuplicate); return; }
-      if (error.code === "42501") { setSubmitError(t.errorPermission); return; }
+    if (!response.ok) {
+      const result = (await response.json().catch(() => null)) as { error?: string } | null;
+      if (response.status === 409 || result?.error === "duplicate") { setSubmitError(t.errorDuplicate); return; }
+      if (response.status === 429 || result?.error === "rate_limited") { setSubmitError(t.errorRateLimited); return; }
+      if (response.status === 400 || result?.error === "invalid") { setSubmitError(t.errorPermission); return; }
+      if (result?.error === "server") { setSubmitError(t.errorConfig); return; }
       setSubmitError(t.errorGeneral);
       return;
     }
