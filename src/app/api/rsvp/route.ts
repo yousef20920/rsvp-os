@@ -1,6 +1,7 @@
 import { createHash } from "crypto";
 import { createClient } from "@supabase/supabase-js";
 import { NextRequest, NextResponse } from "next/server";
+import { jsonError, readJsonBody } from "@/lib/api-guards";
 
 const MAX_NAME_LENGTH = 80;
 const MAX_GUESTS = 20;
@@ -148,40 +149,37 @@ async function isRateLimited(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
-  let body: RsvpPayload;
-
-  try {
-    body = await req.json();
-  } catch {
-    return NextResponse.json({ error: "invalid" }, { status: 400 });
+  const body = await readJsonBody<RsvpPayload>(req);
+  if (!body.ok) {
+    return jsonError(body.error, body.status);
   }
 
-  const payload = validatePayload(body);
+  const payload = validatePayload(body.data);
   if (!payload) {
-    return NextResponse.json({ error: "invalid" }, { status: 400 });
+    return jsonError("invalid", 400);
   }
 
   try {
     if (await isRateLimited(req)) {
-      return NextResponse.json({ error: "rate_limited" }, { status: 429 });
+      return jsonError("rate_limited", 429);
     }
 
     const { error } = await serviceClient().from("rsvps").insert(payload);
 
     if (error) {
       if (error.code === "23505") {
-        return NextResponse.json({ error: "duplicate" }, { status: 409 });
+        return jsonError("duplicate", 409);
       }
 
       if (error.code === "42501" || error.code === "23514") {
-        return NextResponse.json({ error: "invalid" }, { status: 400 });
+        return jsonError("invalid", 400);
       }
 
-      return NextResponse.json({ error: "server" }, { status: 500 });
+      return jsonError("server", 500);
     }
 
     return NextResponse.json({ ok: true });
   } catch {
-    return NextResponse.json({ error: "server" }, { status: 500 });
+    return jsonError("server", 500);
   }
 }

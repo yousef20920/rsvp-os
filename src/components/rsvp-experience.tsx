@@ -378,13 +378,21 @@ function RsvpForm({ t }: { t: T }) {
         : []
     };
 
-    const response = await fetch("/api/rsvp", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify(payload)
-    });
+    let response: Response;
+
+    try {
+      response = await fetch("/api/rsvp", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(payload)
+      });
+    } catch {
+      setIsSubmitting(false);
+      setSubmitError(t.errorGeneral);
+      return;
+    }
     setIsSubmitting(false);
 
     if (!response.ok) {
