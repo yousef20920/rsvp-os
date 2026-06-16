@@ -4,6 +4,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import {
   ChevronDown,
   ExternalLink,
+  KeyRound,
   LogOut,
   Mail,
   RefreshCw,
@@ -13,8 +14,7 @@ import {
   Users,
   X
 } from "lucide-react";
-import { FormEvent, useEffect, useMemo, useState } from "react";
-import { isSupabaseConfigured, supabase } from "@/lib/supabase";
+import { FormEvent, useMemo, useState } from "react";
 import { SeatingChart } from "@/components/seating-chart";
 
 type RsvpRow = {
@@ -29,24 +29,21 @@ type RsvpRow = {
   guest_names: string[];
 };
 
-type SessionState = "loading" | "signed-out" | "signed-in";
-const ADMIN_EMAILS = ["yousef.hadi.cs@gmail.com", "dr.osama.abdelhadi@gmail.com", "alhayeknour@gmail.com"];
+type SessionState = "signed-out" | "signed-in";
+const ADMIN_PASSWORD_STORAGE_KEY = "rsvp-admin-password";
 
 export function AdminDashboard() {
-  const [sessionState, setSessionState] = useState<SessionState>(
-    isSupabaseConfigured ? "loading" : "signed-out"
-  );
-  const [email, setEmail] = useState("");
-  const [signedInEmail, setSignedInEmail] = useState("");
+  const [sessionState, setSessionState] = useState<SessionState>("signed-out");
+  const [password, setPassword] = useState("");
+  const [adminPassword, setAdminPassword] = useState("");
   const [notice, setNotice] = useState("");
   const [error, setError] = useState("");
   const [rsvps, setRsvps] = useState<RsvpRow[]>([]);
-  const [isSendingLink, setIsSendingLink] = useState(false);
+  const [isSigningIn, setIsSigningIn] = useState(false);
   const [isLoadingRows, setIsLoadingRows] = useState(false);
   const [openId, setOpenId] = useState<string | null>(null);
   const [tab, setTab] = useState<"responses" | "seating">("responses");
   const [search, setSearch] = useState("");
-  const configError = isSupabaseConfigured ? "" : "Supabase is not configured yet.";
 
   const attendingRows = rsvps.filter((rsvp) => rsvp.is_attending);
   const stats = useMemo(
@@ -61,106 +58,66 @@ export function AdminDashboard() {
     [attendingRows, rsvps]
   );
 
-  useEffect(() => {
-    if (!isSupabaseConfigured || !supabase) {
-      return;
-    }
-
-    supabase.auth.getSession().then(({ data }) => {
-      setSessionState(data.session ? "signed-in" : "signed-out");
-      setSignedInEmail(data.session?.user.email?.toLowerCase() ?? "");
-    });
-
-    const { data } = supabase.auth.onAuthStateChange((_event, session) => {
-      setSessionState(session ? "signed-in" : "signed-out");
-      setSignedInEmail(session?.user.email?.toLowerCase() ?? "");
-    });
-
-    return () => data.subscription.unsubscribe();
-  }, []);
-
-  useEffect(() => {
-    if (sessionState === "signed-in") {
-      void loadRsvps();
-    }
-  }, [sessionState]);
-
-  async function sendLoginLink(event: FormEvent<HTMLFormElement>) {
+  async function signIn(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
-    if (!supabase || !email.trim()) {
+    if (!password.trim()) {
       return;
     }
 
     setError("");
     setNotice("");
-    setIsSendingLink(true);
+    setIsSigningIn(true);
 
-    const { error: signInError } = await supabase.auth.signInWithOtp({
-      email: email.trim(),
-      options: {
-        emailRedirectTo: `${window.location.origin}/admin/rsvp-vault-7f4c9a`
-      }
+    const res = await fetch("/api/admin/rsvp", {
+      headers: { "x-rsvp-admin-password": password }
     });
 
-    setIsSendingLink(false);
+    setIsSigningIn(false);
 
-    if (signInError) {
-      setError("Could not send the sign-in link. Check the email and Supabase Auth settings.");
+    if (!res.ok) {
+      setRsvps([]);
+      setError("Incorrect admin password.");
       return;
     }
 
-    setNotice("Check your email for the admin sign-in link.");
+    const data = (await res.json()) as { rsvps?: RsvpRow[] };
+    setRsvps(data.rsvps ?? []);
+    setAdminPassword(password);
+    window.sessionStorage.setItem(ADMIN_PASSWORD_STORAGE_KEY, password);
+    setPassword("");
+    setSessionState("signed-in");
   }
 
   async function loadRsvps() {
-    if (!supabase) {
+    if (!adminPassword) {
       return;
     }
 
     setError("");
     setIsLoadingRows(true);
 
-    const { data: userData, error: userError } = await supabase.auth.getUser();
-    const currentEmail = userData.user?.email?.toLowerCase() ?? "";
-    setSignedInEmail(currentEmail);
-
-    if (userError || !ADMIN_EMAILS.includes(currentEmail)) {
-      setIsLoadingRows(false);
-      setRsvps([]);
-      setError(
-        currentEmail
-          ? `Signed in as ${currentEmail}. This email is not authorized to view RSVPs.`
-          : "Your admin session expired. Please sign in again."
-      );
-      return;
-    }
-
-    const { data, error: rowsError } = await supabase
-      .from("rsvps")
-      .select(
-        "id, created_at, first_name, last_name, is_attending, party_size, male_guests, female_guests, guest_names"
-      )
-      .order("created_at", { ascending: false });
+    const res = await fetch("/api/admin/rsvp", {
+      headers: { "x-rsvp-admin-password": adminPassword }
+    });
 
     setIsLoadingRows(false);
 
-    if (rowsError) {
-      setError("You are signed in, but this email is not authorized to view RSVPs.");
+    if (!res.ok) {
+      setSessionState("signed-out");
+      setAdminPassword("");
+      window.sessionStorage.removeItem(ADMIN_PASSWORD_STORAGE_KEY);
+      setError("Your admin session expired. Please enter the password again.");
       setRsvps([]);
       return;
     }
 
-    setRsvps((data ?? []) as RsvpRow[]);
-  }
-
-  async function getAuthHeader() {
-    const { data } = await supabase!.auth.getSession();
-    return { Authorization: `Bearer ${data.session?.access_token}` };
+    const data = (await res.json()) as { rsvps?: RsvpRow[] };
+    setRsvps(data.rsvps ?? []);
   }
 
   async function deleteRsvp(id: string) {
-    const headers = await getAuthHeader();
+    const headers = { "x-rsvp-admin-password": adminPassword };
     const res = await fetch(`/api/admin/rsvp?id=${id}`, { method: "DELETE", headers });
     if (res.ok) setRsvps((prev) => prev.filter((r) => r.id !== id));
     else setError("Failed to delete RSVP.");
@@ -170,7 +127,7 @@ export function AdminDashboard() {
     const updatedNames = rsvp.guest_names.filter((g) => g !== guestName);
     const male = updatedNames.filter((g) => g.endsWith("(Male)")).length;
     const female = updatedNames.filter((g) => g.endsWith("(Female)")).length;
-    const headers = { ...(await getAuthHeader()), "Content-Type": "application/json" };
+    const headers = { "x-rsvp-admin-password": adminPassword, "Content-Type": "application/json" };
     const res = await fetch(`/api/admin/rsvp?id=${rsvp.id}`, {
       method: "PATCH",
       headers,
@@ -187,14 +144,11 @@ export function AdminDashboard() {
   }
 
   async function signOut() {
-    if (!supabase) {
-      return;
-    }
-
-    await supabase.auth.signOut();
     setRsvps([]);
     setOpenId(null);
-    setSignedInEmail("");
+    setAdminPassword("");
+    window.sessionStorage.removeItem(ADMIN_PASSWORD_STORAGE_KEY);
+    setSessionState("signed-out");
   }
 
   return (
@@ -209,7 +163,7 @@ export function AdminDashboard() {
             <h1 className="font-display text-4xl text-ink sm:text-5xl">RSVP Responses</h1>
             {sessionState === "signed-in" ? (
               <p className="mt-2 text-sm text-ink/58">
-                Signed in as {signedInEmail || "unknown"}
+                Signed in with admin password
               </p>
             ) : null}
           </div>
@@ -260,32 +214,32 @@ export function AdminDashboard() {
           <section className="max-w-xl rounded-[2rem] border border-white/65 bg-white/38 p-6 shadow-glass backdrop-blur-2xl sm:p-8">
             <h2 className="font-display text-3xl text-ink">Admin sign in</h2>
 
-            <form onSubmit={sendLoginLink} className="mt-6 space-y-4">
+            <form onSubmit={signIn} className="mt-6 space-y-4">
               <label className="block">
-                <span className="mb-2 block text-sm font-medium text-ink/72">Email</span>
+                <span className="mb-2 block text-sm font-medium text-ink/72">Password</span>
                 <div className="relative">
-                  <Mail className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-ink/38" />
+                  <KeyRound className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-ink/38" />
                   <input
                     className="premium-field !pl-11"
-                    type="email"
-                    value={email}
-                    onChange={(event) => setEmail(event.target.value)}
-                    placeholder="you@example.com"
-                    autoComplete="email"
+                    type="password"
+                    value={password}
+                    onChange={(event) => setPassword(event.target.value)}
+                    placeholder="Enter admin password"
+                    autoComplete="current-password"
                   />
                 </div>
               </label>
 
               <button
                 type="submit"
-                disabled={isSendingLink || !email.trim()}
+                disabled={isSigningIn || !password.trim()}
                 className="inline-flex h-12 w-full items-center justify-center rounded-full bg-wine px-5 text-sm font-semibold uppercase tracking-[0.16em] text-white shadow-[0_18px_50px_rgba(111,48,50,0.22)] transition hover:-translate-y-0.5 hover:bg-[#5f292b] disabled:cursor-not-allowed disabled:opacity-45 disabled:hover:translate-y-0"
               >
-                {isSendingLink ? "Sending" : "Send Sign-In Link"}
+                {isSigningIn ? "Checking" : "Unlock Admin"}
               </button>
             </form>
 
-            <StatusMessage error={error || configError} notice={notice} />
+            <StatusMessage error={error} notice={notice} />
           </section>
         ) : (
           <>

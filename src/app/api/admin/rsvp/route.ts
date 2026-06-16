@@ -1,12 +1,7 @@
+import { timingSafeEqual } from "crypto";
 import { createClient } from "@supabase/supabase-js";
 import { NextRequest, NextResponse } from "next/server";
 import { jsonError, readJsonBody, UUID_PATTERN } from "@/lib/api-guards";
-
-const ADMIN_EMAILS = [
-  "yousef.hadi.cs@gmail.com",
-  "dr.osama.abdelhadi@gmail.com",
-  "alhayeknour@gmail.com",
-];
 
 const MAX_GUESTS = 20;
 const GUEST_NAME_PATTERN = /^.+ \((Male|Female)\)$/;
@@ -33,26 +28,17 @@ function serviceClient() {
   });
 }
 
-async function verifyAdmin(req: NextRequest): Promise<string | null> {
-  const token = req.headers.get("authorization")?.replace("Bearer ", "");
-  if (!token) return null;
+function verifyAdmin(req: NextRequest) {
+  const expected = process.env.RSVP_ADMIN_PASSWORD;
+  const provided = req.headers.get("x-rsvp-admin-password");
 
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-  if (!url || !anonKey) return null;
+  if (!expected || !provided) {
+    return false;
+  }
 
-  const { data } = await createClient(
-    url,
-    anonKey,
-    {
-      auth: {
-        persistSession: false
-      }
-    }
-  ).auth.getUser(token);
-
-  const email = data.user?.email?.toLowerCase();
-  return email && ADMIN_EMAILS.includes(email) ? email : null;
+  const expectedBuffer = Buffer.from(expected);
+  const providedBuffer = Buffer.from(provided);
+  return expectedBuffer.length === providedBuffer.length && timingSafeEqual(expectedBuffer, providedBuffer);
 }
 
 function normalizeName(value: string) {
@@ -106,10 +92,27 @@ function validateGuestUpdate(body: AdminPatchBody) {
   };
 }
 
+// GET /api/admin/rsvp — list RSVP responses
+export async function GET(req: NextRequest) {
+  if (!verifyAdmin(req)) return jsonError("Unauthorized", 401);
+
+  try {
+    const { data, error } = await serviceClient()
+      .from("rsvps")
+      .select("id, created_at, first_name, last_name, is_attending, party_size, male_guests, female_guests, guest_names")
+      .order("created_at", { ascending: false });
+
+    if (error) return jsonError("server", 500);
+
+    return NextResponse.json({ rsvps: data ?? [] });
+  } catch {
+    return jsonError("server", 500);
+  }
+}
+
 // DELETE /api/admin/rsvp?id=<uuid>  — delete entire RSVP
 export async function DELETE(req: NextRequest) {
-  const admin = await verifyAdmin(req);
-  if (!admin) return jsonError("Unauthorized", 401);
+  if (!verifyAdmin(req)) return jsonError("Unauthorized", 401);
 
   const id = req.nextUrl.searchParams.get("id");
   if (!id || !UUID_PATTERN.test(id)) return jsonError("Missing or invalid id", 400);
@@ -126,8 +129,7 @@ export async function DELETE(req: NextRequest) {
 
 // PATCH /api/admin/rsvp?id=<uuid>  — update guest list
 export async function PATCH(req: NextRequest) {
-  const admin = await verifyAdmin(req);
-  if (!admin) return jsonError("Unauthorized", 401);
+  if (!verifyAdmin(req)) return jsonError("Unauthorized", 401);
 
   const id = req.nextUrl.searchParams.get("id");
   if (!id || !UUID_PATTERN.test(id)) return jsonError("Missing or invalid id", 400);
