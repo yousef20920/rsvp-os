@@ -6,6 +6,7 @@ import { jsonError, readJsonBody } from "@/lib/api-guards";
 const MAX_NAME_LENGTH = 80;
 const MAX_GUESTS = 20;
 const GUEST_NAME_PATTERN = /^.+ \((Male|Female)\)$/;
+const RSVP_SUBMISSIONS_CLOSED = true;
 
 type RsvpPayload = {
   first_name?: unknown;
@@ -149,6 +150,10 @@ async function isRateLimited(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
+  if (RSVP_SUBMISSIONS_CLOSED) {
+    return jsonError("closed", 403);
+  }
+
   const body = await readJsonBody<RsvpPayload>(req);
   if (!body.ok) {
     return jsonError(body.error, body.status);

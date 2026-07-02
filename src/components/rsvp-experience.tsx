@@ -61,6 +61,9 @@ const translations = {
     remove: "Remove",
     submit: "Submit RSVP",
     sending: "Sending",
+    closedLabel: "RSVP Closed",
+    closedTitle: "RSVPs are now closed",
+    closedMessage: "Thank you for your response. The RSVP deadline was June 20, and we are no longer accepting new submissions.",
     receivedLabel: "RSVP Received",
     thanksTitle: "Thank you",
     thanksMessage: "Your response has been recorded. We are grateful to celebrate this day with the people closest to us.",
@@ -104,6 +107,9 @@ const translations = {
     remove: "إزالة",
     submit: "إرسال التأكيد",
     sending: "جارٍ الإرسال",
+    closedLabel: "تم إغلاق تأكيد الحضور",
+    closedTitle: "تم إغلاق تأكيد الحضور",
+    closedMessage: "شكراً لردكم. كان آخر موعد لتأكيد الحضور هو ٢٠ يونيو، ولم نعد نقبل أي تأكيدات جديدة.",
     receivedLabel: "تم استلام التأكيد",
     thanksTitle: "شكراً لك",
     thanksMessage: "تم تسجيل ردك. يسعدنا الاحتفال بهذا اليوم مع أعزّ الناس إلينا.",
@@ -118,6 +124,7 @@ const translations = {
 
 const MAX_NAME_LENGTH = 80;
 const MAX_GUESTS = 20;
+const RSVP_CLOSED = true;
 
 const fadeUp = {
   hidden: { opacity: 0, y: 28 },
@@ -287,9 +294,27 @@ function RsvpSection({ t }: { t: T }) {
   return (
     <section className="px-5 pb-28 pt-14 sm:px-8 lg:px-12">
       <ScrollReveal className="mx-auto max-w-3xl">
-        <RsvpForm t={t} />
+        {RSVP_CLOSED ? <RsvpClosedMessage t={t} /> : <RsvpForm t={t} />}
       </ScrollReveal>
     </section>
+  );
+}
+
+function RsvpClosedMessage({ t }: { t: T }) {
+  return (
+    <motion.div
+      className="overflow-hidden rounded-[2rem] border border-white/65 bg-white/35 px-6 py-16 text-center shadow-glass backdrop-blur-2xl sm:px-12"
+      initial={{ opacity: 0, y: 18 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.45 }}
+    >
+      <div className="mx-auto mb-7 grid h-16 w-16 place-items-center rounded-full bg-wine text-white shadow-xl">
+        <Clock className="h-8 w-8" />
+      </div>
+      <p className="mb-3 text-xs uppercase tracking-[0.28em] text-olive">{t.closedLabel}</p>
+      <h2 className="font-display text-4xl text-ink sm:text-5xl">{t.closedTitle}</h2>
+      <p className="mx-auto mt-5 max-w-xl text-base leading-8 text-ink/65">{t.closedMessage}</p>
+    </motion.div>
   );
 }
 
